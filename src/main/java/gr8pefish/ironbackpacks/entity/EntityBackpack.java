@@ -58,11 +58,7 @@ public class EntityBackpack extends Entity implements IEntityAdditionalSpawnData
     }
 
     public static EntityBackpack getEntityBackpack(ItemStack stack){
-        if (backpacksSpawnedMap.containsKey(stack)){
-            return backpacksSpawnedMap.get(stack);
-        } else {
-            return null;
-        }
+        return backpacksSpawnedMap.getOrDefault(stack, null);
     }
 
     /**
@@ -82,7 +78,7 @@ public class EntityBackpack extends Entity implements IEntityAdditionalSpawnData
      */
     public static boolean isBackpackValid(EntityPlayer player, EntityBackpack backpack) {
         if (player == null || player.isDead || backpack == null || backpack.isDead) return false;
-        if (player.worldObj.provider.getDimension() != backpack.worldObj.provider.getDimension()) return false;
+        if (player.world.provider.getDimension() != backpack.world.provider.getDimension()) return false;
         return true;
     }
 
@@ -92,9 +88,9 @@ public class EntityBackpack extends Entity implements IEntityAdditionalSpawnData
      */
     @SideOnly(Side.CLIENT)
     public static void updateBackpacks(Minecraft mc, World worldObj) {
-        EntityPlayer player = mc.thePlayer;
+        EntityPlayer player = mc.player;
         ItemStack backpack = PlayerWearingBackpackCapabilities.getEquippedBackpack(player);
-        if (backpack != null){
+        if (!backpack.isEmpty()){
             EntityBackpack pack = backpacksSpawnedMap.get(backpack);
             if (pack != null) {
                 if (isBackpackValid(player, pack)) pack.fixPositions(player, true);
@@ -137,7 +133,7 @@ public class EntityBackpack extends Entity implements IEntityAdditionalSpawnData
     public void readSpawnData(ByteBuf data) {
         int playerId = data.readInt();
 
-        Entity e = worldObj.getEntityByID(playerId);
+        Entity e = world.getEntityByID(playerId);
 
         if (e instanceof EntityPlayer) {
             player = (EntityPlayer)e;

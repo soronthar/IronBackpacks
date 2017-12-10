@@ -5,7 +5,6 @@ public class ProxyRegistry {
     //=========================================================================Client Registry==================================================================
 
     public static void preInitClient(){
-        ItemRegistry.registerItemRenders();
     }
 
     public static void initClient(){

@@ -18,13 +18,13 @@ import gr8pefish.ironbackpacks.util.Logger;
 import gr8pefish.ironbackpacks.util.NBTUtils;
 import gr8pefish.ironbackpacks.util.TextUtils;
 import gr8pefish.ironbackpacks.util.helpers.IronBackpacksHelper;
-import net.minecraft.client.Minecraft;
+import mcp.MethodsReturnNonnullByDefault;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.stats.Achievement;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -32,6 +32,8 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -61,8 +63,10 @@ public class ItemBackpack extends ItemIUpgradableITieredBackpack implements IBac
     //Called before anything else
     //returning true=success will stop the alt. gui from opening
     //returning false=pass will let it continue as normal (i.e. it can open)
+
     @Override
-    public EnumActionResult onItemUseFirst(ItemStack itemstack, EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, EnumHand hand) {
+    public EnumActionResult onItemUseFirst(EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, EnumHand hand) {
+        ItemStack itemstack = player.getHeldItem(hand);
         //ToDo: Add specific hand opening only?
 //        if (!hand.equals(EnumHand.MAIN_HAND)) {
 //            return EnumActionResult.PASS;
@@ -87,7 +91,7 @@ public class ItemBackpack extends ItemIUpgradableITieredBackpack implements IBac
                 ContainerBackpack container = new ContainerBackpack(new InventoryBackpack(player, itemstack));
                 for (int j = 0; j < container.getInventoryBackpack().getSizeInventory(); j++) {
                     ItemStack nestedBackpack = container.getInventoryBackpack().getStackInSlot(j);
-                    if (nestedBackpack != null && nestedBackpack.getItem() != null && nestedBackpack.getItem() instanceof IBackpack) {
+                    if (!nestedBackpack.isEmpty() && nestedBackpack.getItem() != null && nestedBackpack.getItem() instanceof IBackpack) {
                         ArrayList<ItemStack> nestedUpgrades = IronBackpacksHelper.getUpgradesAppliedFromNBT(nestedBackpack);
                         if (UpgradeMethods.hasQuickDepositUpgrade(nestedUpgrades)) {
                             openAltGuiDepth = !UpgradeMethods.transferFromBackpackToInventory(player, nestedBackpack, world, pos, side, false);
@@ -102,19 +106,25 @@ public class ItemBackpack extends ItemIUpgradableITieredBackpack implements IBac
             }
         }
         return EnumActionResult.PASS;
+
     }
 
     //to open the guis
+
     @Override
-    public ActionResult<ItemStack> onItemRightClick(ItemStack itemStack, World world, EntityPlayer player, EnumHand hand) {
+    @Nonnull
+    public ActionResult<ItemStack> onItemRightClick(World world, EntityPlayer player, @Nonnull EnumHand hand) {
+        ItemStack itemStack = player.getHeldItem(hand);
+        if (itemStack.isEmpty()) {
+            itemStack=PlayerWearingBackpackCapabilities.getCurrentBackpack(player);
+        }
         return handleBackpackOpening(itemStack, world, player, hand, false);
     }
 
     //adds a fancy tooltip
     @Override
     @SideOnly(Side.CLIENT)
-    @SuppressWarnings("unchecked")
-    public void addInformation(ItemStack stack, EntityPlayer player, List list, boolean advanced) {
+    public void addInformation(ItemStack stack, @Nullable World world, List<String> list, ITooltipFlag flag) {
         ArrayList<ItemStack> upgrades = IronBackpacksHelper.getUpgradesAppliedFromNBT(stack);
         int totalUpgradePoints = IronBackpacksHelper.getTotalUpgradePointsFromNBT(stack);
 
@@ -130,8 +140,8 @@ public class ItemBackpack extends ItemIUpgradableITieredBackpack implements IBac
             if (upgrades.size() > 0)
                 list.add("");
 
-            if (this.getSpecialty(null) != null)
-                list.add(TextUtils.localizeEffect(this.getSpecialty(null)));
+            if (this.getSpecialty(ItemStack.EMPTY) != null)
+                list.add(TextUtils.localizeEffect(this.getSpecialty(ItemStack.EMPTY)));
 
             list.add(TextUtils.localizeEffect("tooltip.ironbackpacks.backpack.upgrade.used", upgradesUsed, totalUpgradePoints));
             list.add(TextUtils.localizeEffect("tooltip.ironbackpacks.backpack.upgrade.used.alt", UpgradeMethods.getAltGuiUpgradesApplied(upgrades), IronBackpacksConstants.Upgrades.ALT_GUI_UPGRADES_ALLOWED));
@@ -140,7 +150,7 @@ public class ItemBackpack extends ItemIUpgradableITieredBackpack implements IBac
                 list.add(TextUtils.localizeEffect("tooltip.ironbackpacks.backpack.upgrade.rename", IronBackpacksConstants.Upgrades.ALT_GUI_UPGRADES_ALLOWED));
 
 
-            int additionalPossiblePoints = this.getAdditionalUpgradePoints(null);
+            int additionalPossiblePoints = this.getAdditionalUpgradePoints(ItemStack.EMPTY);
 
             if (additionalPossiblePoints > 0) {
                 int used = IronBackpacksHelper.getAdditionalUpgradesTimesApplied(stack) * ConfigHandler.additionalUpgradePointsIncrease;
@@ -151,9 +161,14 @@ public class ItemBackpack extends ItemIUpgradableITieredBackpack implements IBac
                 list.add(TextUtils.localizeEffect("tooltip.ironbackpacks.shift"));
         }
 
-        if (advanced && NBTUtils.hasUUID(stack))
+        if (flag.isAdvanced() && NBTUtils.hasUUID(stack))
             list.add(TextUtils.localize("tooltip.ironbackpacks.uuid", NBTUtils.getUUID(stack)));
+
     }
+
+
+
+
 
     //=============================================================================Helper Methods===================================================================================
 
@@ -164,6 +179,9 @@ public class ItemBackpack extends ItemIUpgradableITieredBackpack implements IBac
         }
 
         if (!world.isRemote) {
+            if (itemStack.isEmpty()) {
+                return new ActionResult<>(EnumActionResult.FAIL, itemStack);
+            }
             NBTUtils.setUUID(itemStack);
             PlayerWearingBackpackCapabilities.setCurrentBackpack(player, itemStack);
             boolean sneaking = knownShift || player.isSneaking();
@@ -200,11 +218,11 @@ public class ItemBackpack extends ItemIUpgradableITieredBackpack implements IBac
                         NBTTagCompound stackTag = tagList.getCompoundTagAt(i);
                         int slot = stackTag.getByte("Slot");
                         if (i >= 0 && i <= inventory.length)
-                            inventory[slot] = ItemStack.loadItemStackFromNBT(stackTag);
+                            inventory[slot] = new ItemStack(stackTag);
                     }
                     for (ItemStack tempStack : inventory) {
                         if (tempStack != null) {
-                            full += tempStack.stackSize;
+                            full += tempStack.getCount();
                             total += tempStack.getMaxStackSize();
                         } else {
                             total += 64;
@@ -217,23 +235,6 @@ public class ItemBackpack extends ItemIUpgradableITieredBackpack implements IBac
         return 1 - ((double) full / total);
     }
 
-    @Override
-    public Achievement getAchievementOnCraft(ItemStack stack, EntityPlayer player, IInventory matrix) {
-        if (stack.getItem() instanceof ItemBackpack) {
-            ItemBackpack backpack = (ItemBackpack) stack.getItem();
-            switch (backpack.getTier(null)){
-                case 0: //ToDo: Make NOT magic numbers, enum somewhere
-                    return IronBackpacksAchievements.basicPackCrafted;
-                case 1:
-                    return IronBackpacksAchievements.ironPackCrafted;
-                case 2:
-                    return IronBackpacksAchievements.goldPackCrafted;
-                case 3:
-                    return IronBackpacksAchievements.diamondPackCrafted;
-            }
-        }
-        return null;
-    }
 
     @Override
     @SideOnly(Side.CLIENT)

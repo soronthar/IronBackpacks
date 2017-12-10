@@ -9,21 +9,21 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 
 public class ItemBackpackRecipes {
-
-    public static ShapedOreRecipe basicBackpackRecipe = new ShapedOreRecipe(new ItemStack(ItemRegistry.basicBackpack),
-            "wlw",
-            "lcl",
-            "wlw",
-            'l', "leather", 'c', "chestWood", 'w', Blocks.WOOL);
-
-    public static void registerItemBackpackRecipes(){
-        for (int i = 0; i < ItemIBackpackRegistry.getSize(); i++){
-            IBackpack backpack = ItemIBackpackRegistry.getBackpackAtIndex(i);
-            if (backpack != null) {
-                if(backpack.getItemRecipe(null) != null) {
-                    GameRegistry.addRecipe(backpack.getItemRecipe(null)); //hardcoded to ItemBackpack
-                }
-            }
-        }
-    }
+     //TODO
+//    public static ShapedOreRecipe basicBackpackRecipe = new ShapedOreRecipe(new ItemStack(ItemRegistry.basicBackpack),
+//            "wlw",
+//            "lcl",
+//            "wlw",
+//            'l', "leather", 'c', "chestWood", 'w', Blocks.WOOL);
+//
+//    public static void registerItemBackpackRecipes(){
+//        for (int i = 0; i < ItemIBackpackRegistry.getSize(); i++){
+//            IBackpack backpack = ItemIBackpackRegistry.getBackpackAtIndex(i);
+//            if (backpack != null) {
+//                if(backpack.getItemRecipe(null) != null) {
+//                    GameRegistry.addRecipe(backpack.getItemRecipe(null)); //hardcoded to ItemBackpack
+//                }
+//            }
+//        }
+//    }
 }

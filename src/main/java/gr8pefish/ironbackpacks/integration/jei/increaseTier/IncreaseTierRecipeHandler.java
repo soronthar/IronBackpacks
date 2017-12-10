@@ -6,36 +6,36 @@ import mezz.jei.api.recipe.IRecipeWrapper;
 
 import javax.annotation.Nonnull;
 
-public class IncreaseTierRecipeHandler implements IRecipeHandler<BackpackIncreaseTierRecipe> {
-
-    @Nonnull
-    @Override
-    public Class<BackpackIncreaseTierRecipe> getRecipeClass() {
-        return BackpackIncreaseTierRecipe.class;
-    }
-
-    @Nonnull
-    @Override
-    public String getRecipeCategoryUid() {
-        return "ironbackpacks.increaseTier";
-    }
-
-    @Nonnull
-    @Override
-    public String getRecipeCategoryUid(@Nonnull BackpackIncreaseTierRecipe recipe) {
-        return "ironbackpacks.increaseTier";
-    }
-
-    @Nonnull
-    @Override
-    public IRecipeWrapper getRecipeWrapper(@Nonnull BackpackIncreaseTierRecipe recipe) {
-        return new IncreaseTierRecipeWrapper(recipe);
-    }
-
-    @Override
-    public boolean isRecipeValid(@Nonnull BackpackIncreaseTierRecipe recipe) {
-        return recipe.getRecipeOutput() != null;
-    }
+public class IncreaseTierRecipeHandler {// implements IRecipeHandler<BackpackIncreaseTierRecipe> {
+//TODO
+//    @Nonnull
+//    @Override
+//    public Class<BackpackIncreaseTierRecipe> getRecipeClass() {
+//        return BackpackIncreaseTierRecipe.class;
+//    }
+//
+//    @Nonnull
+//    @Override
+//    public String getRecipeCategoryUid() {
+//        return "ironbackpacks.increaseTier";
+//    }
+//
+//    @Nonnull
+//    @Override
+//    public String getRecipeCategoryUid(@Nonnull BackpackIncreaseTierRecipe recipe) {
+//        return "ironbackpacks.increaseTier";
+//    }
+//
+//    @Nonnull
+//    @Override
+//    public IRecipeWrapper getRecipeWrapper(@Nonnull BackpackIncreaseTierRecipe recipe) {
+//        return new IncreaseTierRecipeWrapper(recipe);
+//    }
+//
+//    @Override
+//    public boolean isRecipeValid(@Nonnull BackpackIncreaseTierRecipe recipe) {
+//        return recipe.getRecipeOutput() != null;
+//    }
 
 }
 

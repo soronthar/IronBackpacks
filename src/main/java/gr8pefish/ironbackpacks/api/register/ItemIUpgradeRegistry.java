@@ -171,11 +171,11 @@ public class ItemIUpgradeRegistry {
 
     public static IRecipe getItemRecipe(int index){
         if (index < upgradesIUpgrade.size()){
-            return upgradesIUpgrade.get(index).getItemRecipe(null);
+            return upgradesIUpgrade.get(index).getItemRecipe(ItemStack.EMPTY);
         }else if (index < getInflatedSizeOfConflicting()){
-            return getItemIConflictingUpgrade(index).getItemRecipe(null);
+            return getItemIConflictingUpgrade(index).getItemRecipe(ItemStack.EMPTY);
         }else {
-            return getItemIConfingurableUpgrade(index).getItemRecipe(null);
+            return getItemIConfingurableUpgrade(index).getItemRecipe(ItemStack.EMPTY);
         }
     }
 }

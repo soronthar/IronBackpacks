@@ -33,10 +33,10 @@ public class LayerBackpack implements LayerRenderer<AbstractClientPlayer> {
         if (!entitylivingbaseIn.isInvisible() && !ConfigHandler.disableRendering) { //if not invisible and should render
 
             ItemStack pack = IronBackpacksCapabilities.getWornBackpack(entitylivingbaseIn); //get the equipped backpack
-            if (pack != null) { //if there is one
+            if (!pack.isEmpty()) { //if there is one
 
                 final Minecraft minecraft = Minecraft.getMinecraft();
-                final boolean isLocalPlayer = entitylivingbaseIn == minecraft.thePlayer;
+                final boolean isLocalPlayer = entitylivingbaseIn == minecraft.player;
                 final boolean isFpp = minecraft.gameSettings.thirdPersonView == 0;
 
                 if (isLocalPlayer && isFpp) {

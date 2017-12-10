@@ -16,7 +16,7 @@ import gr8pefish.ironbackpacks.registry.RecipeRegistry;
 import gr8pefish.ironbackpacks.sounds.IronBackpacksSounds;
 import gr8pefish.ironbackpacks.util.IronBackpacksConstants;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
@@ -35,8 +35,8 @@ public class IronBackpacks {
 	//Make a custom creative tab with the iron backpack as the logo
 	public static final CreativeTabs creativeTab = new CreativeTabs(Constants.MODID) {
 		@Override
-		public Item getTabIconItem() {
-			return ItemRegistry.ironBackpackStorageEmphasis;
+		public ItemStack getTabIconItem() {
+			return new ItemStack(ItemRegistry.ironBackpackStorageEmphasis);
 		}
 	};
 
@@ -65,17 +65,11 @@ public class IronBackpacks {
 		NetworkingHandler.initPackets();
 		NetworkRegistry.INSTANCE.registerGuiHandler(instance, new GuiHandler());
 
-        //items
-        ItemRegistry.registerItems();
-
         //Register buttons
         GuiButtonRegistry.registerButtons(); //need it on server side for inventory stuff (i.e. containerAltGui)
 
 		//Achievements
-		IronBackpacksAchievements.init();
-
-		//Sounds
-		IronBackpacksSounds.registerSounds();
+//		IronBackpacksAchievements.init();
 
 		//Keybindings, Client Event Handler, and Rendering
 		proxy.preInit();
@@ -94,7 +88,7 @@ public class IronBackpacks {
 		FMLCommonHandler.instance().bus().register(forgeEventHandler);
 
 		//recipes
-		RecipeRegistry.registerAllRecipes();
+//TODO		RecipeRegistry.registerAllRecipes();
 
 		//entity rendering
 		proxy.init();

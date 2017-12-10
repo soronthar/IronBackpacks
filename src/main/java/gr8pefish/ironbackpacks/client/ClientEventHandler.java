@@ -92,7 +92,7 @@ public class ClientEventHandler {
             try { //try catch because some setups can result in the IndexOOB crash
                 for (int i = 0; i < hotbarBindings.length - 1; i++) { //-1 for more safety
                     if (Keyboard.isKeyDown(hotbarBindings[i].getKeyCode())) { //have to use Keyboard directly, instead of .isPressed()
-                        if (IronBackpacksHelper.areItemStacksTheSame(Minecraft.getMinecraft().thePlayer.inventory.getStackInSlot(i), openedPack)) { //can't move the same backpack you have open
+                        if (IronBackpacksHelper.areItemStacksTheSame(Minecraft.getMinecraft().player.inventory.getStackInSlot(i), openedPack)) { //can't move the same backpack you have open
                             event.setCanceled(true);
                             return;
                         }
@@ -127,6 +127,7 @@ public class ClientEventHandler {
 
                 for (int i = 0; i < 9; i++) {
                     GhostSlot slot = (GhostSlot) gui.container.getSlot(gui.container.getFilterAdvSlotIdStart() + i);
+
                     if (gui.isMouseOverSlot(slot, x, y)) {
                         canceled = false; //could just cancel always, but seems to mess up filter items more often
                         if ((wheelState / 120) == 1) { //scroll up

@@ -108,9 +108,9 @@ public class ConfigAdaptor {
         if(changes.size() == 0)
             return;
 
-        player.addChatComponentMessage(new TextComponentTranslation("botaniamisc.adaptativeConfigChanges").setStyle(new Style().setColor(TextFormatting.GOLD)));
+        player.sendMessage(new TextComponentTranslation("botaniamisc.adaptativeConfigChanges").setStyle(new Style().setColor(TextFormatting.GOLD)));
         for(String change : changes)
-            player.addChatMessage(new TextComponentString(change).setStyle(new Style().setColor(TextFormatting.LIGHT_PURPLE)));
+            player.sendMessage(new TextComponentString(change).setStyle(new Style().setColor(TextFormatting.LIGHT_PURPLE)));
     }
 
     public void addMappingInt(int version, String key, int val) {

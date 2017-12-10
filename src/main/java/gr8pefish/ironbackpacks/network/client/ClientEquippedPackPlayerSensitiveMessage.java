@@ -49,7 +49,7 @@ public class ClientEquippedPackPlayerSensitiveMessage implements IMessage {
                 EntityPlayer targetEntity = (EntityPlayer) world.getEntityByID(message.entityID);
                 if (targetEntity != null) {
                     PlayerWearingBackpackCapabilities.setEquippedBackpack(targetEntity, message.stack); //update the backpack
-                    PlayerDeathBackpackCapabilities.setEquippedBackpack(targetEntity, null); //update death equipped to null in case too
+                    PlayerDeathBackpackCapabilities.setEquippedBackpack(targetEntity, ItemStack.EMPTY); //update death equipped to null in case too
                 }
             });
 

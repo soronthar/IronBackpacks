@@ -17,6 +17,7 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -125,7 +126,7 @@ public class ContainerAlternateGui extends Container {
 
     @Override //disables shift-clicking (because ghost slots)
     public ItemStack transferStackInSlot(EntityPlayer p, int i){
-        return null;
+        return ItemStack.EMPTY;
     }
 
     @Override
@@ -139,27 +140,28 @@ public class ContainerAlternateGui extends Container {
 //        Logger.error("Closed container alt gui");
         if (UpgradeMethods.hasFilterAdvancedUpgrade(upgrades))
             saveSlots();
-        if (!player.worldObj.isRemote)
+        if (!player.world.isRemote)
             this.inventory.onGuiSaved(player); //only save on server side
 
     }
 
     //Where ghost slots' functionality is really handled
     @Override
+    @Nonnull
     public ItemStack slotClick(int slot, int dragType, ClickType clickTypeIn, EntityPlayer player) {
         // this will prevent the player from interacting with the items that opened the inventory:
-        if (slot >= 0 && getSlot(slot) != null && getSlot(slot).getHasStack() && player.getHeldItemMainhand() != null && getSlot(slot).getStack().isItemEqual(player.getHeldItemMainhand())) {
-            return null;
+        if (slot >= 0 && getSlot(slot) != null && getSlot(slot).getHasStack() && !player.getHeldItemMainhand().isEmpty()&& getSlot(slot).getStack().isItemEqual(player.getHeldItemMainhand())) {
+            return ItemStack.EMPTY;
         // otherwise they may be clicking on a ghostSlot
         }else if (slot >= 0 && slot < inventory.getSizeInventory()) {
-            if (player.inventory.getItemStack() != null) { //clicking on slot with an itemStack
+            if (!player.inventory.getItemStack().isEmpty()) { //clicking on slot with an itemStack
                 ItemStack usedStack = player.inventory.getItemStack().copy(); //exact item copied
-                usedStack.stackSize = 1; //stack size of 1
+                usedStack.setCount(1);
                 inventory.setInventorySlotContents(slot, usedStack);
-                return null;
+                return ItemStack.EMPTY;
             }else{ //clicking with an empty hand
-                inventory.setInventorySlotContents(slot, null);
-                return null;
+                inventory.setInventorySlotContents(slot, ItemStack.EMPTY);
+                return ItemStack.EMPTY;
             }
         }
         //otherwise it is a normal slot
@@ -168,7 +170,7 @@ public class ContainerAlternateGui extends Container {
         } catch (Exception e) {
             //Horrible work around for a bug when double clicking on a stack in inventory which matches a filter items
             //This does stop double clicking to fill a stack from working with this GUI open.
-            return null;
+            return ItemStack.EMPTY;
         }
     }
 
@@ -184,9 +186,9 @@ public class ContainerAlternateGui extends Container {
         stack.setStackDisplayName(ConfigHandler.makeRenamedBackpacksNamesItalic ? toName : "\u00A7r" + toName); //client
 
         ItemStack itemStack = PlayerWearingBackpackCapabilities.getCurrentBackpack(player);
-        if (itemStack == null)
+        if (itemStack.isEmpty())
             itemStack = PlayerWearingBackpackCapabilities.getEquippedBackpack(player);
-        if (itemStack != null)
+        if (!itemStack.isEmpty())
             itemStack.setStackDisplayName(ConfigHandler.makeRenamedBackpacksNamesItalic ? toName : "\u00A7r" + toName); //server (not really, but this way works...)
 
     }
@@ -197,13 +199,13 @@ public class ContainerAlternateGui extends Container {
      */
     public void removeSlotsInRow(int row){
         if (row == (filterAdvSlotIdStart/9)+1){
-            Arrays.fill(inventory.advFilterStacks, null);
+            Arrays.fill(inventory.advFilterStacks, ItemStack.EMPTY);
             Arrays.fill(inventory.advFilterButtonStates, (byte) GuiButtonRegistry.getButton(ButtonNames.EXACT).getId());
             inventory.advFilterButtonStartPoint = 0;
             initFilterSlots();
         }else {
             for (int i = (row - 1) * 9; i < row * 9; i++) {
-                inventory.setInventorySlotContents(i, null);
+                inventory.setInventorySlotContents(i, ItemStack.EMPTY);
             }
         }
     }

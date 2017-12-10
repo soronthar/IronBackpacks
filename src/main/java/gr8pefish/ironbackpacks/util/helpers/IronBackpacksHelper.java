@@ -25,6 +25,7 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumHand;
 import net.minecraftforge.oredict.OreDictionary;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 
 /**
@@ -41,18 +42,18 @@ public class IronBackpacksHelper {
      * @return - null if it can't be found, the itemstack otherwise
      */
     public static ItemStack getBackpack(EntityPlayer player) {
-        ItemStack backpack;
+        ItemStack backpack=ItemStack.EMPTY;
 
         ItemStack currPack = PlayerWearingBackpackCapabilities.getCurrentBackpack(player);
-        if (currPack != null) {
+        if (!currPack.isEmpty()) {
             backpack = currPack;
-        }else if(PlayerWearingBackpackCapabilities.getEquippedBackpack(player)!= null){
+        }else if(!PlayerWearingBackpackCapabilities.getEquippedBackpack(player).isEmpty()){
             backpack = PlayerWearingBackpackCapabilities.getEquippedBackpack(player);
         }else {
             backpack = getBackpackFromPlayersInventory(player);
         }
 
-        if (!player.worldObj.isRemote && backpack != null)
+        if (!player.world.isRemote && !backpack.isEmpty())
             NBTUtils.setUUID(backpack);
 
         return backpack;
@@ -64,19 +65,19 @@ public class IronBackpacksHelper {
      * @return - null if nothing can be found, the itemstack otherwise
      */
     public static ItemStack getBackpackFromPlayersInventory(EntityPlayer player){
-        ItemStack backpack = null;
-        if (player.getHeldItemMainhand() != null && player.getHeldItemMainhand().getItem() instanceof IBackpack) {
+        ItemStack backpack = ItemStack.EMPTY;
+        if (player.getHeldItemMainhand().getItem() instanceof IBackpack) {
             backpack = player.getHeldItemMainhand();
         } else {
             for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
                 ItemStack stack = player.inventory.getStackInSlot(i);
 
-                if (stack != null && stack.getItem() != null && stack.getItem() instanceof IBackpack) {
+                if (!stack.isEmpty() && stack.getItem() instanceof IBackpack) {
                     backpack = player.inventory.getStackInSlot(i);
                 }
             }
         }
-        if (!player.worldObj.isRemote && backpack != null) {
+        if (!player.world.isRemote && !backpack.isEmpty()) {
             NBTUtils.setUUID(backpack);
         }
 
@@ -93,15 +94,14 @@ public class IronBackpacksHelper {
      */
     public static ArrayList<ItemStack> getUpgradesAppliedFromNBT(ItemStack backpack) {
         ArrayList<ItemStack> upgradesArrayList = new ArrayList<>();
-        if (backpack != null) {
+        if (!backpack.isEmpty()) {
             NBTTagCompound nbtTagCompound = backpack.getTagCompound();
             if (nbtTagCompound != null) {
                 if(nbtTagCompound.hasKey(IronBackpacksConstants.NBTKeys.UPGRADES)) {
                     NBTTagList tagList = nbtTagCompound.getTagList(IronBackpacksConstants.NBTKeys.UPGRADES, net.minecraftforge.common.util.Constants.NBT.TAG_COMPOUND);
                     for (int i = 0; i < tagList.tagCount(); i++) {
                         NBTTagCompound stackTag = tagList.getCompoundTagAt(i);
-                        ItemStack upgrade = ItemStack.loadItemStackFromNBT(stackTag);
-                        if (upgrade != null)
+                        ItemStack upgrade = new ItemStack(stackTag);
                             upgradesArrayList.add(upgrade);
                     }
                 }
@@ -141,7 +141,7 @@ public class IronBackpacksHelper {
      * @return - integer value
      */
     public static int getAdditionalUpgradesUpgradeCount(ItemStack stack){
-        if (stack != null) {
+        if (!stack.isEmpty()) {
             NBTTagCompound nbtTagCompound = stack.getTagCompound();
             if (nbtTagCompound != null) {
                 if (nbtTagCompound.hasKey(IronBackpacksConstants.NBTKeys.ADDITIONAL_POINTS)) {
@@ -158,7 +158,7 @@ public class IronBackpacksHelper {
      * @return - integer value
      */
     public static int getAdditionalUpgradesTimesApplied(ItemStack stack){
-        if (stack != null) {
+        if (!stack.isEmpty()) {
             NBTTagCompound nbtTagCompound = stack.getTagCompound();
             if (nbtTagCompound != null) {
                 if (nbtTagCompound.hasKey(IronBackpacksConstants.NBTKeys.ADDITIONAL_POINTS)) {
@@ -175,7 +175,7 @@ public class IronBackpacksHelper {
 
         ItemStack backpack = PlayerWearingBackpackCapabilities.getEquippedBackpack(player);
 
-        if (backpack != null) { //need to unequip backpack
+        if (!backpack.isEmpty()) { //need to unequip backpack
 
             //if hotbar isn't full
                 //if currently selected slot is empty
@@ -194,18 +194,18 @@ public class IronBackpacksHelper {
             boolean hasEmptyInventorySlot = false;
 
             for (int i = 0; i < 9; i++) {
-                if (player.inventory.getStackInSlot(i) == null) hasEmptyHotbarSlot = true;
+                if (player.inventory.getStackInSlot(i).isEmpty()) hasEmptyHotbarSlot = true;
             }
 
             if (hasEmptyHotbarSlot) {
-                if (player.getHeldItemMainhand() == null) {
+                if (player.getHeldItemMainhand().isEmpty()) {
                     player.setItemStackToSlot(EntityEquipmentSlot.MAINHAND, backpack);
                 } else {
                     //take off backpack and put in player's inventory
                     player.inventory.addItemStackToInventory(backpack);
                 }
             } else {
-                if (player.getHeldItemOffhand() == null) hasEmptyOffhand = true;
+                if (player.getHeldItemOffhand().isEmpty()) hasEmptyOffhand = true;
 
                 if (hasEmptyOffhand) {
                     ItemStack selected = player.getHeldItem(EnumHand.MAIN_HAND);
@@ -216,7 +216,7 @@ public class IronBackpacksHelper {
                 } else {
 
                     for (int i = 9; i < player.inventory.getSizeInventory() - 5; i++) { //don't care about armor slots or offhand
-                        if (player.inventory.getStackInSlot(i) == null) hasEmptyInventorySlot = true;
+                        if (player.inventory.getStackInSlot(i).isEmpty()) hasEmptyInventorySlot = true;
                     }
                     if (hasEmptyInventorySlot) {
                         ItemStack selected = player.getHeldItem(EnumHand.MAIN_HAND).copy();
@@ -231,18 +231,18 @@ public class IronBackpacksHelper {
             if (hasEmptyHotbarSlot || hasEmptyOffhand || hasEmptyInventorySlot) { //backpack was unequipped, need to "save"
 
                 //update equipped backpack to null
-                PlayerWearingBackpackCapabilities.setEquippedBackpack(player, null);
+                PlayerWearingBackpackCapabilities.setEquippedBackpack(player, ItemStack.EMPTY);
 
                 //update equipped backpack on client side, not ideal but it works
-                NetworkingHandler.network.sendTo(new ClientEquippedPackMessage(null), (EntityPlayerMP)player);
+                NetworkingHandler.network.sendTo(new ClientEquippedPackMessage(ItemStack.EMPTY), (EntityPlayerMP)player);
 
                 //update backpacks for multiplayer
-                EntityTracker tracker = ((EntityPlayerMP) player).worldObj.getMinecraftServer().worldServerForDimension(player.dimension).getEntityTracker();
-                tracker.sendToAllTrackingEntity(player, NetworkingHandler.network.getPacketFrom(new ClientEquippedPackPlayerSensitiveMessage(player.getEntityId(), null)));
+                EntityTracker tracker = ((EntityPlayerMP) player).world.getMinecraftServer().getWorld(player.dimension).getEntityTracker();
+                tracker.sendToTracking(player, NetworkingHandler.network.getPacketFrom(new ClientEquippedPackPlayerSensitiveMessage(player.getEntityId(), ItemStack.EMPTY)));
             }
 
         }
-        else if (!ConfigHandler.disableEquipping && player.getHeldItemMainhand() != null && player.getHeldItemMainhand().getItem() instanceof IBackpack) { //need to equip backpack
+        else if (!ConfigHandler.disableEquipping && !player.getHeldItemMainhand().isEmpty() && player.getHeldItemMainhand().getItem() instanceof IBackpack) { //need to equip backpack
 
             ItemStack backpackStack = player.getHeldItemMainhand();
             NBTUtils.setUUID(backpackStack);
@@ -254,11 +254,11 @@ public class IronBackpacksHelper {
             NetworkingHandler.network.sendTo(new ClientEquippedPackMessage(backpackStack), (EntityPlayerMP)player); //works on SSP
 
             //delete the held items
-            player.inventory.setInventorySlotContents(player.inventory.currentItem, null);
+            player.inventory.setInventorySlotContents(player.inventory.currentItem, ItemStack.EMPTY);
 
             //update backpacks for multiplayer
-            EntityTracker tracker = ((EntityPlayerMP) player).worldObj.getMinecraftServer().worldServerForDimension(player.dimension).getEntityTracker();
-            tracker.sendToAllTrackingEntity(player, NetworkingHandler.network.getPacketFrom(new ClientEquippedPackPlayerSensitiveMessage(player.getEntityId(), backpackStack)));
+            EntityTracker tracker = ((EntityPlayerMP) player).world.getMinecraftServer().getWorld(player.dimension).getEntityTracker();
+            tracker.sendToTracking(player, NetworkingHandler.network.getPacketFrom(new ClientEquippedPackPlayerSensitiveMessage(player.getEntityId(), backpackStack)));
         }
     }
 
@@ -280,26 +280,24 @@ public class IronBackpacksHelper {
 
         EntityItem entityItem = null; //the equipped backpack to drop
 
-        boolean gameruleKeepInv = player.worldObj.getGameRules().getBoolean("keepInventory");
+        boolean gameruleKeepInv = player.world.getGameRules().getBoolean("keepInventory");
         ArrayList<ItemStack> backpacks = new ArrayList<>(); //the backpacks to save
 
         boolean shouldStorePack = false; //to store the pack in the inventory for a "normal death"
         boolean stored = false; //the act of storing it
-        ItemStack packToStore = null;
+        ItemStack packToStore = ItemStack.EMPTY;
 
         //ToDo: Try with gravestone mods and get it working
         //test with full inventories as well
 
         //deal with dropping the equipped pack
         ItemStack equippedPack = PlayerWearingBackpackCapabilities.getEquippedBackpack(player);
-        if (equippedPack != null) {
-            if (!UpgradeMethods.hasEternityUpgrade(getUpgradesAppliedFromNBT(equippedPack))) {
-                if (!gameruleKeepInv) {
-                    ItemStack deathEquipped = PlayerDeathBackpackCapabilities.getEquippedBackpack(player);
-                    if (deathEquipped == null || (!deathEquipped.equals(equippedPack))) { //for when an eternity backpack recently lost its upgrade and then this fires right after
-                        entityItem = new EntityItem(player.worldObj, player.posX, player.posY, player.posZ, equippedPack); //works
-                        PlayerDeathBackpackCapabilities.setEquippedBackpack(player, null); //removes backpack if it was present before
-                    }
+        if (!UpgradeMethods.hasEternityUpgrade(getUpgradesAppliedFromNBT(equippedPack))) {
+            if (!gameruleKeepInv) {
+                ItemStack deathEquipped = PlayerDeathBackpackCapabilities.getEquippedBackpack(player);
+                if (!deathEquipped.equals(equippedPack)) { //for when an eternity backpack recently lost its upgrade and then this fires right after
+                    entityItem = new EntityItem(player.world, player.posX, player.posY, player.posZ, equippedPack); //works
+                    PlayerDeathBackpackCapabilities.setEquippedBackpack(player, ItemStack.EMPTY); //removes backpack if it was present before
                 }
             }
         }
@@ -342,11 +340,10 @@ public class IronBackpacksHelper {
 
         ArrayList<ItemStack> backpacks = new ArrayList<>(); //the backpacks to save
 
-        boolean gameruleKeepInv = player.worldObj.getGameRules().getBoolean("keepInventory");
+        boolean gameruleKeepInv = player.world.getGameRules().getBoolean("keepInventory");
 
         //deal with equipped packs (if you keep them through death)
         ItemStack equippedPack = PlayerWearingBackpackCapabilities.getEquippedBackpack(player);
-        if (equippedPack != null) {
             if (UpgradeMethods.hasEternityUpgrade(getUpgradesAppliedFromNBT(equippedPack))) {
                 if (gameruleKeepInv) { //works
                     PlayerDeathBackpackCapabilities.setEquippedBackpack(player, equippedPack.copy());
@@ -358,19 +355,18 @@ public class IronBackpacksHelper {
                 if (gameruleKeepInv) { //works
                     PlayerDeathBackpackCapabilities.setEquippedBackpack(player, equippedPack.copy());
                 }
-            }
         }
 
         //deal with storing other packs (only care if they have the eternity upgrade)
         for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
             ItemStack tempStack = player.inventory.getStackInSlot(i);
-            if (tempStack != null) {
+            if (!tempStack.isEmpty()) {
                 if (tempStack.getItem() instanceof IBackpack) {
                     if (UpgradeMethods.hasEternityUpgrade(getUpgradesAppliedFromNBT(tempStack))) {
                         if (!gameruleKeepInv) {
                             ItemStack stackToAdd = removeEternityUpgrade(getUpgradesAppliedFromNBT(tempStack), tempStack); //removes upgrade
                             backpacks.add(stackToAdd); //works
-                            player.inventory.setInventorySlotContents(i, null); //set to null so it doesn't drop
+                            player.inventory.setInventorySlotContents(i, ItemStack.EMPTY); //set to null so it doesn't drop
                         }
                     }
                 }
@@ -388,8 +384,10 @@ public class IronBackpacksHelper {
     public static void loadBackpackOnDeath(EntityPlayer player) {
         //get equipped pack
         ItemStack equipped = PlayerDeathBackpackCapabilities.getEquippedBackpack(player);
+
+
         //respawn it
-        if (equipped != null) {
+        if (!equipped.isEmpty()) {
             NetworkingHandler.network.sendTo(new ClientEquippedPackMessage(equipped), (EntityPlayerMP) player); //update client on correct pack
             PlayerWearingBackpackCapabilities.setEquippedBackpack(player, equipped); //update server on correct pack
         }
@@ -415,8 +413,7 @@ public class IronBackpacksHelper {
      * @param stack - the backpack to check
      * @return - the itemstack with the 'keepOnDeath' upgrade removed (if valid/applicable)
      */
-    private static ItemStack removeEternityUpgrade(ArrayList<ItemStack> upgrades, ItemStack stack){
-        if (stack != null) {
+    private static ItemStack removeEternityUpgrade(ArrayList<ItemStack> upgrades, @Nonnull ItemStack stack){
             NBTTagCompound nbtTagCompound = stack.getTagCompound();
             NBTTagList tagList = new NBTTagList();
             for (ItemStack upgrade : upgrades) {
@@ -426,8 +423,6 @@ public class IronBackpacksHelper {
             }
             nbtTagCompound.setTag(IronBackpacksConstants.NBTKeys.UPGRADES, tagList);
             return stack;
-        }
-        return null;
     }
 
 
@@ -461,7 +456,7 @@ public class IronBackpacksHelper {
      * @return
      */
     public static boolean areItemsEqualAndStackable(ItemStack itemStack1, ItemStack itemStack2){
-        return (itemStack1.isStackable() && itemStack1.stackSize < itemStack1.getMaxStackSize() && areItemsEqualForStacking(itemStack1, itemStack2));
+        return (itemStack1.isStackable() && itemStack1.getCount() < itemStack1.getMaxStackSize() && areItemsEqualForStacking(itemStack1, itemStack2));
     }
 
 }

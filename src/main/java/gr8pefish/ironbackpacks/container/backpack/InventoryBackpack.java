@@ -17,6 +17,8 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.common.util.Constants;
 
+import javax.annotation.Nonnull;
+import java.util.Arrays;
 import java.util.UUID;
 
 /**
@@ -34,6 +36,7 @@ public class InventoryBackpack implements IInventory {
         this.backpackStack = backpackStack;
         this.player = player;
         this.inventory = new ItemStack[this.getSizeInventory()];
+        Arrays.fill(this.inventory,ItemStack.EMPTY);
         this.sortType = "id";
         readFromNBT(backpackStack.getTagCompound());
     }
@@ -43,6 +46,7 @@ public class InventoryBackpack implements IInventory {
         this.backpackStack = backpackStack;
         this.player = null;
         this.inventory = new ItemStack[this.getSizeInventory()];
+        Arrays.fill(this.inventory,ItemStack.EMPTY);
         this.sortType = "id";
         readFromNBT(backpackStack.getTagCompound(), noPlayer);
     }
@@ -74,33 +78,33 @@ public class InventoryBackpack implements IInventory {
 
     @Override
     public ItemStack getStackInSlot(int slotIndex) {
-        return slotIndex >= this.getSizeInventory() ? null : this.inventory[slotIndex];
+        return slotIndex >= this.getSizeInventory() ? ItemStack.EMPTY : this.inventory[slotIndex];
     }
 
     @Override
     public ItemStack decrStackSize(int slotIndex, int amount) {
-        if (inventory[slotIndex] != null) {
-            if (inventory[slotIndex].stackSize <= amount) {
+        if (!inventory[slotIndex].isEmpty()) {
+            if (inventory[slotIndex].getCount() <= amount) {
                 ItemStack itemstack = inventory[slotIndex];
-                inventory[slotIndex] = null;
+                inventory[slotIndex] = ItemStack.EMPTY;
                 return itemstack;
             }
             ItemStack itemstack1 = inventory[slotIndex].splitStack(amount);
-            if (inventory[slotIndex].stackSize == 0) {
-                inventory[slotIndex] = null;
+            if (inventory[slotIndex].getCount() == 0) {
+                inventory[slotIndex] = ItemStack.EMPTY;
             }
             return itemstack1;
         }
         else {
-            return null;
+            return ItemStack.EMPTY;
         }
     }
 
     @Override
-    public void setInventorySlotContents(int slotIndex, ItemStack itemStack) {
+    public void setInventorySlotContents(int slotIndex, @Nonnull ItemStack itemStack) {
         inventory[slotIndex] = itemStack;
-        if (itemStack != null && itemStack.stackSize > getInventoryStackLimit()) {
-            itemStack.stackSize = getInventoryStackLimit();
+        if (!itemStack.isEmpty() && itemStack.getCount() > getInventoryStackLimit()) {
+            itemStack.setCount(getInventoryStackLimit());
         }
     }
 
@@ -120,10 +124,10 @@ public class InventoryBackpack implements IInventory {
 
     @Override
     public ItemStack removeStackFromSlot(int index) {
-        ItemStack stack = null;
-        if (inventory[index] != null){
+        ItemStack stack = ItemStack.EMPTY;
+        if (!inventory[index].isEmpty()){
             stack = inventory[index];
-            inventory[index] = null;
+            inventory[index] = ItemStack.EMPTY;
         }
         return stack;
     }
@@ -139,7 +143,7 @@ public class InventoryBackpack implements IInventory {
     }
 
     @Override
-    public boolean isUseableByPlayer(EntityPlayer player) {
+    public boolean isUsableByPlayer(EntityPlayer player) {
         return true;
     }
 
@@ -176,19 +180,17 @@ public class InventoryBackpack implements IInventory {
 
     @Override
     public void clear() {
-        for (int i = 0; i < inventory.length; i++){
-            inventory[i] = null;
-        }
+        Arrays.fill(this.inventory,ItemStack.EMPTY);
     }
 
     //Helper methods for Botania's API and IBlockProvider
     public int hasStackInInv(Block blockToCheck, int meta){
         int total = 0;
         for (int i = 0; i < inventory.length; i++){
-            if (inventory[i] != null && inventory[i].stackSize > 0){
+            if (!inventory[i].isEmpty()&& inventory[i].getCount() > 0){
                 Block backpackItemAsBlock = Block.getBlockFromItem(inventory[i].getItem());
                 if (backpackItemAsBlock.equals(blockToCheck) && inventory[i].getItemDamage() == meta){
-                    total += inventory[i].stackSize;
+                    total += inventory[i].getCount();
                 }
             }
         }
@@ -197,11 +199,11 @@ public class InventoryBackpack implements IInventory {
 
     public boolean removeOneItem(Block blockToCheck, int meta){
         for (int i = 0; i < inventory.length; i++){
-            if (inventory[i] != null && inventory[i].stackSize > 0){
+            if (!inventory[i].isEmpty()&& inventory[i].getCount() > 0){
                 Block backpackItemAsBlock = Block.getBlockFromItem(inventory[i].getItem());
                 if (backpackItemAsBlock.equals(blockToCheck) && inventory[i].getItemDamage() == meta){
-                    inventory[i].stackSize--;
-                    if (inventory[i].stackSize == 0) inventory[i] = null;
+                    inventory[i].setCount(inventory[i].getCount());
+                    if (inventory[i].isEmpty()) inventory[i] = ItemStack.EMPTY;
                     save();
                     return true;
                 }
@@ -219,7 +221,7 @@ public class InventoryBackpack implements IInventory {
      */
     public boolean isEmpty(){
         for (ItemStack stack : inventory) {
-            if (stack != null && stack.stackSize > 0) {
+            if (!stack.isEmpty() && stack.getCount() > 0) {
                 return false;
             }
         }
@@ -231,7 +233,7 @@ public class InventoryBackpack implements IInventory {
      * @param entityPlayer - the player with the backpack
      */
     public void onGuiSaved(EntityPlayer entityPlayer){
-        if (backpackStack != null){
+        if (!backpackStack.isEmpty()){
             save();
         }
     }
@@ -241,7 +243,7 @@ public class InventoryBackpack implements IInventory {
      * @param player - the player with the backpack
      */
     public void saveWithSideCheck(EntityPlayer player){
-        if (!player.worldObj.isRemote) {
+        if (!player.world.isRemote) {
             onGuiSaved(player);
         }
     }
@@ -266,21 +268,21 @@ public class InventoryBackpack implements IInventory {
      * @param nbtTagCompound - the tag compound
      */
     public void writeToNBT(NBTTagCompound nbtTagCompound){
-        if (!player.worldObj.isRemote) { //server side only
+        if (!player.world.isRemote) { //server side only
             ItemStack tempStack = findParentItemStack(player);
-            ItemStack stackToUse = (tempStack == null) ? backpackStack : tempStack;
+            ItemStack stackToUse = (tempStack.isEmpty()) ? backpackStack : tempStack;
 
             nbtTagCompound = stackToUse.getTagCompound();
 
             // Write the ItemStacks in the inventory to NBT
             NBTTagList tagList = new NBTTagList();
             for (int i = 0; i < inventory.length; i++) {
-                if (inventory[i] != null) {
+//                if (!inventory[i].isEmpty()) {
                     NBTTagCompound tagCompound = new NBTTagCompound();
                     tagCompound.setByte(IronBackpacksConstants.NBTKeys.SLOT, (byte) i);
                     inventory[i].writeToNBT(tagCompound);
                     tagList.appendTag(tagCompound);
-                }
+//                }
             }
             nbtTagCompound.setTag(IronBackpacksConstants.NBTKeys.ITEMS, tagList);
             nbtTagCompound.setTag(IronBackpacksConstants.NBTKeys.SORT_TYPE, new NBTTagString(sortType));
@@ -293,10 +295,10 @@ public class InventoryBackpack implements IInventory {
      */
     //ToDo: Really need to remove this nonsense in next refactor
     public void readFromNBT(NBTTagCompound nbtTagCompound){
-        if (!player.worldObj.isRemote) { //server side only
+        if (!player.world.isRemote) { //server side only
             ItemStack tempStack = findParentItemStack(player);
-            backpackStack = (tempStack == null) ? backpackStack : tempStack;
-            if (backpackStack != null) {
+            backpackStack = (tempStack.isEmpty()) ? backpackStack : tempStack;
+            if (!backpackStack.isEmpty()) {
                 nbtTagCompound = backpackStack.getTagCompound();
 
                 if (nbtTagCompound != null) {
@@ -313,7 +315,7 @@ public class InventoryBackpack implements IInventory {
                             NBTTagCompound stackTag = tagList.getCompoundTagAt(i);
                             int j = stackTag.getByte(IronBackpacksConstants.NBTKeys.SLOT);
                             if (i >= 0 && i <= inventory.length) { //ToDo: Remove 2nd equals (so just less than) as per a 1.7.10 PR; test it
-                                this.inventory[j] = ItemStack.loadItemStackFromNBT(stackTag);
+                                this.inventory[j] = new ItemStack(stackTag);
                             }
                         }
                     }
@@ -327,7 +329,7 @@ public class InventoryBackpack implements IInventory {
     }
 
     public void readFromNBT(NBTTagCompound nbtTagCompound, boolean noPlayer){
-        if (noPlayer && (backpackStack != null)) {
+        if (noPlayer && (!backpackStack.isEmpty())) {
             nbtTagCompound = backpackStack.getTagCompound();
 
             if (nbtTagCompound != null) {
@@ -344,7 +346,7 @@ public class InventoryBackpack implements IInventory {
                         NBTTagCompound stackTag = tagList.getCompoundTagAt(i);
                         int j = stackTag.getByte(IronBackpacksConstants.NBTKeys.SLOT);
                         if (i >= 0 && i <= inventory.length) { //ToDo: Remove 2nd equals (so just less than) as per a 1.7.10 PR; test it
-                            this.inventory[j] = ItemStack.loadItemStackFromNBT(stackTag);
+                            this.inventory[j] = new ItemStack(stackTag);
                         }
                     }
                 }
@@ -363,7 +365,7 @@ public class InventoryBackpack implements IInventory {
             for (int i = 0; i < entityPlayer.inventory.getSizeInventory(); i++){
                 ItemStack itemStack = entityPlayer.inventory.getStackInSlot(i);
 
-                if (itemStack != null && itemStack.getItem() instanceof IBackpack && NBTUtils.hasUUID(itemStack)){
+                if (!itemStack.isEmpty() && itemStack.getItem() instanceof IBackpack && NBTUtils.hasUUID(itemStack)){
                     if (itemStack.getTagCompound().getLong(IronBackpacksConstants.Miscellaneous.MOST_SIG_UUID) == parentUUID.getMostSignificantBits() && itemStack.getTagCompound().getLong(IronBackpacksConstants.Miscellaneous.LEAST_SIG_UUID) == parentUUID.getLeastSignificantBits()){
                         return itemStack;
                     }
@@ -371,12 +373,12 @@ public class InventoryBackpack implements IInventory {
             }
 
             ItemStack equipped = PlayerWearingBackpackCapabilities.getEquippedBackpack(entityPlayer);
-            if (equipped != null && equipped.getItem() instanceof IBackpack && NBTUtils.hasUUID(equipped)) {
+            if (!equipped.isEmpty() && equipped.getItem() instanceof IBackpack && NBTUtils.hasUUID(equipped)) {
                 if (equipped.getTagCompound().getLong(IronBackpacksConstants.Miscellaneous.MOST_SIG_UUID) == parentUUID.getMostSignificantBits() && equipped.getTagCompound().getLong(IronBackpacksConstants.Miscellaneous.LEAST_SIG_UUID) == parentUUID.getLeastSignificantBits()) {
                     return equipped;
                 }
             }
         }
-        return null;
+        return ItemStack.EMPTY;
     }
 }

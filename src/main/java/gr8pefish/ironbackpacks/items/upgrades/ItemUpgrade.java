@@ -6,14 +6,17 @@ import gr8pefish.ironbackpacks.api.IronBackpacksAPI;
 import gr8pefish.ironbackpacks.api.items.upgrades.interfaces.IUpgrade;
 import gr8pefish.ironbackpacks.api.register.ItemIUpgradeRegistry;
 import gr8pefish.ironbackpacks.util.TextUtils;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.NonNullList;
+import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 
@@ -27,10 +30,9 @@ public class ItemUpgrade extends Item {
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public void getSubItems(Item id, CreativeTabs creativeTab, List<ItemStack> list) {
+    public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> items) {
         for (int i = 0; i < ItemIUpgradeRegistry.getTotalSize(); i++)
-            list.add(new ItemStack(id, 1, i));
+            items.add(new ItemStack(this, 1, i));
     }
 
     @Override
@@ -41,7 +43,8 @@ public class ItemUpgrade extends Item {
     @Override
     @SideOnly(Side.CLIENT)
     @SuppressWarnings("unchecked")
-    public void addInformation(ItemStack itemStack, EntityPlayer player, List list, boolean advanced) {
+    public void addInformation(ItemStack itemStack, @Nullable World world, List<String> list, ITooltipFlag flagIn) {
+        boolean advanced = flagIn.isAdvanced();
         if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)) {
             list.add(TextUtils.localizeEffect("tooltip.ironbackpacks.upgrade.cost", ItemIUpgradeRegistry.getItemUpgrade(itemStack).getUpgradeCost(itemStack), ItemIUpgradeRegistry.getItemUpgrade(itemStack).getUpgradeCost(itemStack) == 1 ? "" : "s"));
             list.addAll(Arrays.asList(TextUtils.cutLongString(TextUtils.localizeEffect("tooltip.ironbackpacks.upgrade.minimumTier", getMinimumTierBackpackName(ItemIUpgradeRegistry.getItemUpgrade(itemStack).getTier(itemStack))))));
@@ -50,7 +53,9 @@ public class ItemUpgrade extends Item {
         } else {
             list.add(TextUtils.localizeEffect("tooltip.ironbackpacks.shift"));
         }
+
     }
+
 
     //HARDCODED to my tiers
     private String getMinimumTierBackpackName(int tier){

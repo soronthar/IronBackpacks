@@ -109,20 +109,20 @@ public class ContainerBackpack extends Container {
 
     @Override //copied from IronChests
     public ItemStack transferStackInSlot(EntityPlayer p, int i){
-        ItemStack itemstack = null;
+        ItemStack itemstack = ItemStack.EMPTY;
         Slot slot = (Slot) inventorySlots.get(i);
         if (slot != null && slot.getHasStack()){
             ItemStack itemstack1 = slot.getStack();
             itemstack = itemstack1.copy();
             if (i < totalSize){ //if clicking from backpack to player
                 if (!mergeItemStack(itemstack1, totalSize, inventorySlots.size(), true))
-                    return null;
+                    return ItemStack.EMPTY;
             } else if (!((BackpackSlot) inventorySlots.get(1)).acceptsStack(itemstack1))
-                return null;
+                return ItemStack.EMPTY;
             else if (!mergeItemStack(itemstack1, 0, totalSize, false))
-                return null;
-            if (itemstack1.stackSize == 0)
-                slot.putStack(null);
+                return ItemStack.EMPTY;
+            if (itemstack1.isEmpty())
+                slot.putStack(ItemStack.EMPTY);
             else
                 slot.onSlotChanged();
         }
@@ -132,13 +132,13 @@ public class ContainerBackpack extends Container {
     /**
      * Checks if the items can be put into the backpack, for use with the filter upgrade
      * @param itemToPutInBackpack - the itemstack to put in
-     * @return - the remaining itemstack (null if it has been put it, the remaining otherwise)
+     * @return - the remaining itemstack (ItemStack.EMPTY if it has been put it, the remaining otherwise)
      */
     public ItemStack transferStackInSlot(ItemStack itemToPutInBackpack){
         if (!mergeItemStack(itemToPutInBackpack, 0, backpackItem.getSize(backpackStack), false)) //stack, startIndex, endIndex, flag
-            return null;
+            return ItemStack.EMPTY;
         else if (!((BackpackSlot) inventorySlots.get(1)).acceptsStack(itemToPutInBackpack)) //slot 1 is always a backpackSlot
-            return null;
+            return ItemStack.EMPTY;
         return itemToPutInBackpack;
     }
 
@@ -151,7 +151,7 @@ public class ContainerBackpack extends Container {
     public void onContainerClosed(EntityPlayer player) {
         super.onContainerClosed(player);
 
-        if (!player.worldObj.isRemote) //server side
+        if (!player.world.isRemote) //server side
             this.inventory.onGuiSaved(player);
     }
 
@@ -161,29 +161,29 @@ public class ContainerBackpack extends Container {
         // this will prevent the player from interacting with the items that opened the inventory:
         ItemStack currPack = PlayerWearingBackpackCapabilities.getCurrentBackpack(player);
         if (slot >= 0 && getSlot(slot) != null && getSlot(slot).getHasStack() && ItemStack.areItemStacksEqual(getSlot(slot).getStack(), currPack) && dragType == 0) {
-            return null;
+            return ItemStack.EMPTY;
         }else if (dragType == 1 && slot >= 0 && getSlot(slot) != null && getSlot(slot).getHasStack()){ //right click on non-empty slot
             if(getSlot(slot).getStack().getItem() instanceof IBackpack) { //has to be a backpack
                 ItemStack stack = getSlot(slot).getStack();
 
                 if (!ItemStack.areItemStackTagsEqual(stack, IronBackpacksHelper.getBackpack(player))) {//can't right click the same backpack you have open, causes it to not update correctly and dupe items
-                    if (stack != null) {
-                        stack.useItemRightClick(player.worldObj, player, EnumHand.MAIN_HAND);
+                    if (!stack.isEmpty()) {
+                        stack.useItemRightClick(player.world, player, EnumHand.MAIN_HAND);
                     }
                 }
 
-                return null;
+                return ItemStack.EMPTY;
             }else if(InterModSupport.isEnderStorageLoaded && InterModSupport.isEnderPouch(getSlot(slot).getStack().getItem())) {
                 ItemStack stack = getSlot(slot).getStack();
-                stack.useItemRightClick(player.worldObj, player, EnumHand.MAIN_HAND);
-                return null;
+                stack.useItemRightClick(player.world, player, EnumHand.MAIN_HAND);
+                return ItemStack.EMPTY;
             }else if(getSlot(slot).getStack().getItem() instanceof IInventory) { //TODO: Dangerous inter-mod IInventory code, test this
 //                if (!(getSlot(slot).getStack().getItem() instanceof IBackpack)) { //my backpacks handled already by client mouse event
                     ItemStack stack = getSlot(slot).getStack();
-                    if (stack != null) {
-                        stack.useItemRightClick(player.worldObj, player, EnumHand.MAIN_HAND);
+                    if (!stack.isEmpty()) {
+                        stack.useItemRightClick(player.world, player, EnumHand.MAIN_HAND);
                     }
-                    return null;
+                    return ItemStack.EMPTY;
 //                }
                 //ToDo: Possibly add normal here and remove compat from clientClickEvent
             }
@@ -198,7 +198,7 @@ public class ContainerBackpack extends Container {
      * @param player - the player
      */
     public void save(EntityPlayer player) {
-        if (!player.worldObj.isRemote) { //server side
+        if (!player.world.isRemote) { //server side
             this.inventory.onGuiSaved(player);
         }
     }
@@ -293,7 +293,7 @@ public class ContainerBackpack extends Container {
             Slot tempSlot = (Slot) inventorySlots.get(i);
             if (tempSlot!= null && tempSlot.getHasStack()){
                 ItemStack tempStack = tempSlot.getStack();
-                if (tempStack!= null && tempStack.stackSize < tempStack.getMaxStackSize()){
+                if (!tempStack.isEmpty() && tempStack.getCount() < tempStack.getMaxStackSize()){
                     fillSlot(tempSlot, i+1);
                 }
             }
@@ -302,23 +302,23 @@ public class ContainerBackpack extends Container {
 
     private void fillSlot(Slot slotToFill, int startIndex){
         ItemStack stackToFill = slotToFill.getStack();
-        int fillAmt = stackToFill.getMaxStackSize() - stackToFill.stackSize;
+        int fillAmt = stackToFill.getMaxStackSize() - stackToFill.getCount();
         if (fillAmt > 0){
             for (int i = startIndex; i < totalSize; i++){
                 stackToFill = slotToFill.getStack();
-                fillAmt = stackToFill.getMaxStackSize() - stackToFill.stackSize;
+                fillAmt = stackToFill.getMaxStackSize() - stackToFill.getCount();
                 Slot tempSlot = (Slot) inventorySlots.get(i);
                 if (tempSlot != null && tempSlot.getHasStack()){
                     ItemStack tempStack = tempSlot.getStack();
-                    if (tempStack.stackSize > 0 && tempStack.isItemEqual(stackToFill) && ItemStack.areItemStackTagsEqual(tempStack, stackToFill)){
-                        if (tempStack.stackSize > fillAmt){
+                    if (tempStack.getCount() > 0 && tempStack.isItemEqual(stackToFill) && ItemStack.areItemStackTagsEqual(tempStack, stackToFill)){
+                        if (tempStack.getCount() > fillAmt){
                             tempSlot.decrStackSize(fillAmt);
                             slotToFill.putStack(new ItemStack(stackToFill.getItem(), stackToFill.getMaxStackSize(), stackToFill.getItemDamage()));
                             slotToFill.onSlotChanged();
                             break;
                         }else{
-                            tempSlot.putStack(null);
-                            slotToFill.putStack(new ItemStack(stackToFill.getItem(), stackToFill.stackSize + tempStack.stackSize, stackToFill.getItemDamage()));
+                            tempSlot.putStack(ItemStack.EMPTY);
+                            slotToFill.putStack(new ItemStack(stackToFill.getItem(), stackToFill.getCount() + tempStack.getCount(), stackToFill.getItemDamage()));
                             slotToFill.onSlotChanged();
                         }
                     }
@@ -333,7 +333,7 @@ public class ContainerBackpack extends Container {
             Slot tempSlot = (Slot) inventorySlots.get(i);
             if (tempSlot!= null && tempSlot.getHasStack()){
                 ItemStack tempStack = tempSlot.getStack();
-                if (tempStack != null && tempStack.stackSize > 0){
+                if (!tempStack.isEmpty() && tempStack.getCount() > 0){
                     indicesOfSlotsWithItems.add(i);
                 }
             }
@@ -355,7 +355,7 @@ public class ContainerBackpack extends Container {
     private void swapNull(Slot nullSlot, Slot stackSlot){
         if (stackSlot != null && stackSlot.getHasStack()) {
             nullSlot.putStack(stackSlot.getStack());
-            stackSlot.putStack(null);
+            stackSlot.putStack(ItemStack.EMPTY);
             stackSlot.onSlotChanged();
         }
     }

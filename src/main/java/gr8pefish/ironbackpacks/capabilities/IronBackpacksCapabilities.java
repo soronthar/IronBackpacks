@@ -7,6 +7,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 
+import javax.annotation.Nonnull;
+
 public class IronBackpacksCapabilities {
 
     //TODO: Refactor to API eventually
@@ -34,11 +36,12 @@ public class IronBackpacksCapabilities {
     }
 
     //Useful methods for other classes
+    @Nonnull
     public static ItemStack getWornBackpack(EntityPlayer player) {
         PlayerWearingBackpackCapabilities cap = getWearingBackpackCapability(player);
         if (cap != null)
             return cap.getEquippedBackpack();
-        return null;
+        return ItemStack.EMPTY;
     }
 
 }
