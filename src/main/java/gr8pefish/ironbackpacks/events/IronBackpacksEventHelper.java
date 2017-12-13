@@ -544,12 +544,12 @@ public class IronBackpacksEventHelper {
                                                 //TODO: iterates an excessive amount, make it more efficient by using the basis of the code above
                                                 for (int i = 0; i < numberOfIterations; i++){ //for every possible recipes operation
                                                     ItemStack myRecipeOutput = new ItemStack(recipeOutput.getItem(), recipeOutput.getCount(), recipeOutput.getItemDamage()); //get the output
-                                                    ItemStack stack = container.transferStackInSlot(myRecipeOutput); //try to put that output into the backpack
-                                                    if (stack.isEmpty()){ //can't put it anywhere
+                                                    boolean transfered = container.transferStackInSlot(myRecipeOutput); //try to put that output into the backpack
+                                                    if (!transfered){ //can't put it anywhere
                                                         break;
-                                                    }else if (stack.getCount() != 0){ //remainder present, stack couldn't be fully transferred, undo the last operation
+                                                    }else if (myRecipeOutput.getCount() != 0){ //remainder present, stack couldn't be fully transferred, undo the last operation
                                                         Slot slot = container.getSlot(itemBackpack.getSize(backpack)-1); //last slot in pack
-                                                        slot.putStack(new ItemStack(recipeOutput.getItem(), recipeOutput.getMaxStackSize()-(recipeOutput.getCount() - stack.getCount()), recipeOutput.getItemDamage()));
+                                                        slot.putStack(new ItemStack(recipeOutput.getItem(), recipeOutput.getMaxStackSize()-recipeOutput.getCount(), recipeOutput.getItemDamage()));
                                                         break;
                                                     } else { //normal condition, stack was fully transferred
                                                         theSlot.decrStackSize(1);
@@ -557,7 +557,7 @@ public class IronBackpacksEventHelper {
                                                 }
                                             }else {
                                                 ItemStack myRecipeOutput = new ItemStack(recipeOutput.getItem(), numberOfItems, recipeOutput.getItemDamage());
-                                                if (!container.transferStackInSlot(myRecipeOutput).isEmpty()) {
+                                                if (container.transferStackInSlot(myRecipeOutput)) {
                                                     theSlot.decrStackSize(theStack.getCount() - (theStack.getCount() % (craftingGridDiameterToFill * craftingGridDiameterToFill)));
                                                 }
                                                 container.save(event.getEntityPlayer());
@@ -639,8 +639,7 @@ public class IronBackpacksEventHelper {
         for (ItemStack filterItem : filterItems) {
             if (!filterItem.isEmpty()) {
                 if (IronBackpacksHelper.areItemsEqualForStacking(event.getItem().getItem(), filterItem)) {
-                    ItemStack returned = container.transferStackInSlot(event.getItem().getItem()); //custom method to put itemEntity's itemStack into the backpack
-                    if (!returned.isEmpty()) shouldSave = true;
+                    shouldSave= container.transferStackInSlot(event.getItem().getItem()); //custom method to put itemEntity's itemStack into the backpack
                 }
             }
         }
@@ -661,8 +660,7 @@ public class IronBackpacksEventHelper {
         for (ItemStack filterItem : filterItems) {
             if (!filterItem.isEmpty()) {
                 if (event.getItem().getItem().getItem() == filterItem.getItem()) {
-                    ItemStack returned = container.transferStackInSlot(event.getItem().getItem()); //custom method to put itemEntity's itemStack into the backpack
-                    if (!returned.isEmpty()) shouldSave = true;
+                    shouldSave = container.transferStackInSlot(event.getItem().getItem()); //custom method to put itemEntity's itemStack into the backpack
                 }
             }
         }
@@ -687,8 +685,7 @@ public class IronBackpacksEventHelper {
                 if (itemEntityOre != null && filterItemOre != null) {
                     for (String oreName : itemEntityOre) {
                         if (oreName != null && filterItemOre.contains(oreName)) {
-                            ItemStack returned = container.transferStackInSlot(event.getItem().getItem()); //custom method to put itemEntity's itemStack into the backpack
-                            if (!returned.isEmpty()) shouldSave = true;
+                            shouldSave = container.transferStackInSlot(event.getItem().getItem()); //custom method to put itemEntity's itemStack into the backpack
                         }
                     }
                 }
@@ -712,8 +709,7 @@ public class IronBackpacksEventHelper {
             if (!filterItem.isEmpty()) {
                 //if modId1 == modId2 same mod so transfer
                 if ((event.getItem().getItem().getItem()).getRegistryName().getResourceDomain().equals(((filterItem.getItem()).getRegistryName().getResourceDomain()))){
-                    ItemStack returned = container.transferStackInSlot(event.getItem().getItem()); //custom method to put itemEntity's itemStack into the backpack
-                    if (!returned.isEmpty()) shouldSave = true;
+                    shouldSave = container.transferStackInSlot(event.getItem().getItem()); //custom method to put itemEntity's itemStack into the backpack
                 }
             }
         }
@@ -737,8 +733,7 @@ public class IronBackpacksEventHelper {
         if (itemEntityOre != null) {
             for (String oreName : itemEntityOre) {
                 if (oreName != null && (oreName.startsWith("ore") || oreName.startsWith("gem") || oreName.startsWith("dust"))) {
-                    ItemStack returned = container.transferStackInSlot(event.getItem().getItem()); //custom method to put itemEntity's itemStack into the backpack
-                    if (!returned.isEmpty()) shouldSave = true;
+                    shouldSave = container.transferStackInSlot(event.getItem().getItem()); //custom method to put itemEntity's itemStack into the backpack
                 }
             }
         }

@@ -736,7 +736,7 @@ public class UpgradeMethods {
         for (int i = 0; i < transferTo.getSlots(); i++) {
             if (stackToTransfer.isEmpty()) return ItemStack.EMPTY; //short circuit to return quickly
             if (usePrecise) { //precise, have to check if the items is in the inventory already
-                if (isStackInInventoryAlready(transferTo, stackToTransfer)) {
+                if (isStackInInventoryAlready(transferTo, stackToTransfer)) { //TODO: return the index, to merge as musch as possible
                     stackToTransfer = transferToInv(transferTo, stackToTransfer, i);
                 }
             } else { //just check if the slot can accept the items

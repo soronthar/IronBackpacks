@@ -28,7 +28,7 @@ public class InventoryBackpack implements IInventory {
 
     private ItemStack backpackStack; //the itemstack instance of the backpack
     private EntityPlayer player; //the player
-    private ItemStack[] inventory; //the stored items
+    private ItemStack[] inventory; //the stored items -- change to nonnulllist
     private String sortType; //the sort option (id/alphabetical)
 
     //Instantiated from GuiHandler

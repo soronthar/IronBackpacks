@@ -19,6 +19,7 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.NonNullList;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,6 +65,11 @@ public class ContainerBackpack extends Container {
     }
     public InventoryBackpack getInventoryBackpack() {
         return inventory;
+    }
+
+    @Override
+    public NonNullList<ItemStack> getInventory() {
+        return super.getInventory(); //overriden for easy debugging.
     }
 
     /**
@@ -132,14 +138,15 @@ public class ContainerBackpack extends Container {
     /**
      * Checks if the items can be put into the backpack, for use with the filter upgrade
      * @param itemToPutInBackpack - the itemstack to put in
-     * @return - the remaining itemstack (ItemStack.EMPTY if it has been put it, the remaining otherwise)
+     * @return - the remaining itemstack (ItemStack.EMPTY if it has been put it, the remaining otherwise), or null if it could not put it.
      */
-    public ItemStack transferStackInSlot(ItemStack itemToPutInBackpack){
+
+    public boolean transferStackInSlot(ItemStack itemToPutInBackpack){
         if (!mergeItemStack(itemToPutInBackpack, 0, backpackItem.getSize(backpackStack), false)) //stack, startIndex, endIndex, flag
-            return ItemStack.EMPTY;
+            return false;
         else if (!((BackpackSlot) inventorySlots.get(1)).acceptsStack(itemToPutInBackpack)) //slot 1 is always a backpackSlot
-            return ItemStack.EMPTY;
-        return itemToPutInBackpack;
+            return false;
+        return true;
     }
 
     @Override

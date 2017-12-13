@@ -16,6 +16,7 @@ import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.NonNullList;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -199,7 +200,7 @@ public class ContainerAlternateGui extends Container {
      */
     public void removeSlotsInRow(int row){
         if (row == (filterAdvSlotIdStart/9)+1){
-            Arrays.fill(inventory.advFilterStacks, ItemStack.EMPTY);
+            inventory.advFilterStacks = NonNullList.withSize(18,ItemStack.EMPTY);
             Arrays.fill(inventory.advFilterButtonStates, (byte) GuiButtonRegistry.getButton(ButtonNames.EXACT).getId());
             inventory.advFilterButtonStartPoint = 0;
             initFilterSlots();
@@ -222,7 +223,7 @@ public class ContainerAlternateGui extends Container {
      */
     public void initFilterSlots(){
         for (int i= 0; i < 9; i++){
-            getSlot(filterAdvSlotIdStart+i).putStack(inventory.advFilterStacks[getWraparoundIndex(i)]);
+            getSlot(filterAdvSlotIdStart+i).putStack(inventory.advFilterStacks.get(getWraparoundIndex(i)));
         }
     }
 
@@ -256,7 +257,7 @@ public class ContainerAlternateGui extends Container {
      */
     private void saveSlots(){
         for (int i = 0; i < 9; i++) {
-            inventory.advFilterStacks[getWraparoundIndex(i)] = getSlot(filterAdvSlotIdStart + i).getStack();
+            inventory.advFilterStacks.set(getWraparoundIndex(i),getSlot(filterAdvSlotIdStart + i).getStack());
         }
     }
 

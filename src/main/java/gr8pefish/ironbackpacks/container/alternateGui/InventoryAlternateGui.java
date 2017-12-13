@@ -22,6 +22,7 @@ import net.minecraft.nbt.NBTTagByte;
 import net.minecraft.nbt.NBTTagByteArray;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.common.util.Constants;
@@ -38,11 +39,11 @@ public class InventoryAlternateGui implements IInventory {
 
     private ItemStack backpackStack; //the itemstack of the backpack
     private EntityPlayer player; //the player
-    private ItemStack[] inventory; //the items in the backpack
+    private NonNullList<ItemStack> inventory; //the items in the backpack
     private ArrayList<ItemStack> upgrades; //the upgrades applied
     private int invSize; //the size of the inventory
 
-    protected ItemStack[] advFilterStacks; //the items in the advanced filter
+    protected NonNullList<ItemStack> advFilterStacks; //the items in the advanced filter
     protected byte[] advFilterButtonStates; //the button states of the advanced filter
     protected int advFilterButtonStartPoint; //the start point of the advanced filter
 
@@ -52,12 +53,12 @@ public class InventoryAlternateGui implements IInventory {
         this.player = player;
         this.upgrades = IronBackpacksHelper.getUpgradesAppliedFromNBT(backpackStack);
         this.invSize = UpgradeMethods.getAlternateGuiUpgradeSlots(this.upgrades); //dynamic, size is based on number of alt. gui. upgrades
-        this.inventory = new ItemStack[this.getSizeInventory()];
+        this.inventory = NonNullList.withSize(this.getSizeInventory(),ItemStack.EMPTY);
 
         advFilterButtonStates = new byte[18];
         Arrays.fill(advFilterButtonStates, (byte) GuiButtonRegistry.getButton(ButtonNames.EXACT).getId()); //default value of all buttons
         advFilterButtonStartPoint = 0; //default start point
-        advFilterStacks = new ItemStack[18];
+        advFilterStacks = NonNullList.withSize(18,ItemStack.EMPTY);
 
         readFromNBT(backpackStack.getTagCompound()); //to initialize data
     }
@@ -84,7 +85,7 @@ public class InventoryAlternateGui implements IInventory {
 
     @Override
     public ItemStack getStackInSlot(int slotIndex) {
-        return (slotIndex >= this.getSizeInventory() || slotIndex < 0) ? ItemStack.EMPTY : this.inventory[slotIndex];
+        return (slotIndex >= this.getSizeInventory() || slotIndex < 0) ? ItemStack.EMPTY : this.inventory.get(slotIndex);
     }
 
     @Override
@@ -99,15 +100,15 @@ public class InventoryAlternateGui implements IInventory {
     @Override
     @Nonnull
     public ItemStack decrStackSize(int slotIndex, int amount) {
-        if (!inventory[slotIndex].isEmpty()) {
-            if (inventory[slotIndex].getCount() <= amount) {
-                ItemStack itemstack = inventory[slotIndex];
-                inventory[slotIndex] = ItemStack.EMPTY;
+        if (!inventory.get(slotIndex).isEmpty()) {
+            if (inventory.get(slotIndex).getCount() <= amount) {
+                ItemStack itemstack = inventory.get(slotIndex);
+                inventory.set(slotIndex,ItemStack.EMPTY);
                 return itemstack;
             }
-            ItemStack itemstack1 = inventory[slotIndex].splitStack(amount);
-            if (inventory[slotIndex].getCount() == 0) {
-                inventory[slotIndex] = ItemStack.EMPTY;
+            ItemStack itemstack1 = inventory.get(slotIndex).splitStack(amount);
+            if (inventory.get(slotIndex).getCount() == 0) {
+                inventory.set(slotIndex,ItemStack.EMPTY);
             }
             return itemstack1;
         } else {
@@ -117,8 +118,8 @@ public class InventoryAlternateGui implements IInventory {
 
     @Override
     public void setInventorySlotContents(int slotIndex, @Nonnull ItemStack itemStack) {
-        if (slotIndex >= 0 && slotIndex < this.inventory.length) {
-            this.inventory[slotIndex] = itemStack;
+        if (slotIndex >= 0 && slotIndex < this.inventory.size()) {
+            this.inventory.set(slotIndex,itemStack);
             if (!itemStack.isEmpty()&& itemStack.getCount() > getInventoryStackLimit()) {
                 itemStack.setCount(getInventoryStackLimit());
             }
@@ -143,9 +144,9 @@ public class InventoryAlternateGui implements IInventory {
     @Override
     public ItemStack removeStackFromSlot(int index) {
         ItemStack stack = ItemStack.EMPTY;
-        if (!inventory[index].isEmpty()){
-            stack = inventory[index];
-            inventory[index] = ItemStack.EMPTY;
+        if (!inventory.get(index).isEmpty()){
+            stack = inventory.get(index);
+            inventory.set(index,ItemStack.EMPTY);
         }
         return stack;
     }
@@ -221,8 +222,8 @@ public class InventoryAlternateGui implements IInventory {
 
     @Override
     public void clear() {
-        for (int i = 0; i < inventory.length; i++){
-            inventory[i] = ItemStack.EMPTY;
+        for (int i = 0; i < this.inventory.size(); i++){
+            inventory.set(i,ItemStack.EMPTY);
         }
     }
 
@@ -276,10 +277,10 @@ public class InventoryAlternateGui implements IInventory {
         if (UpgradeMethods.hasCraftingUpgrade(this.upgrades)) {
             NBTTagList tagList = new NBTTagList();
             for (int i = startIndex; i < startIndex + 9; i++) {
-                if (!inventory[i].isEmpty()) {
+                if (!inventory.get(i).isEmpty()) {
                     NBTTagCompound tagCompound = new NBTTagCompound();
                     tagCompound.setByte(IronBackpacksConstants.NBTKeys.SLOT, (byte) i);
-                    inventory[i].writeToNBT(tagCompound);
+                    inventory.get(i).writeToNBT(tagCompound);
                     tagList.appendTag(tagCompound);
                 }
             }
@@ -289,10 +290,10 @@ public class InventoryAlternateGui implements IInventory {
         if (UpgradeMethods.hasCraftingSmallUpgrade(this.upgrades)) {
             NBTTagList tagList = new NBTTagList();
             for (int i = startIndex; i < startIndex + 9; i++) {
-                if (!inventory[i].isEmpty()) {
+                if (!inventory.get(i).isEmpty()) {
                     NBTTagCompound tagCompound = new NBTTagCompound();
                     tagCompound.setByte(IronBackpacksConstants.NBTKeys.SLOT, (byte) i);
-                    inventory[i].writeToNBT(tagCompound);
+                    inventory.get(i).writeToNBT(tagCompound);
                     tagList.appendTag(tagCompound);
                 }
             }
@@ -302,10 +303,10 @@ public class InventoryAlternateGui implements IInventory {
         if (UpgradeMethods.hasCraftingTinyUpgrade(this.upgrades)) {
             NBTTagList tagList = new NBTTagList();
             for (int i = startIndex; i < startIndex + 9; i++) {
-                if (!inventory[i].isEmpty()) {
+                if (!inventory.get(i).isEmpty()) {
                     NBTTagCompound tagCompound = new NBTTagCompound();
                     tagCompound.setByte(IronBackpacksConstants.NBTKeys.SLOT, (byte) i);
-                    inventory[i].writeToNBT(tagCompound);
+                    inventory.get(i).writeToNBT(tagCompound);
                     tagList.appendTag(tagCompound);
                 }
             } startIndex += 9;
@@ -314,10 +315,10 @@ public class InventoryAlternateGui implements IInventory {
         if (UpgradeMethods.hasFilterBasicUpgrade(this.upgrades)) {
             NBTTagList tagList = new NBTTagList();
             for (int i = startIndex; i < startIndex + 9; i++) {
-                if (!inventory[i].isEmpty()) {
+                if (!inventory.get(i).isEmpty()) {
                     NBTTagCompound tagCompound = new NBTTagCompound();
                     tagCompound.setByte(IronBackpacksConstants.NBTKeys.SLOT, (byte) i);
-                    inventory[i].writeToNBT(tagCompound);
+                    inventory.get(i).writeToNBT(tagCompound);
                     tagList.appendTag(tagCompound);
                 }
             }
@@ -327,10 +328,10 @@ public class InventoryAlternateGui implements IInventory {
         if (UpgradeMethods.hasFilterFuzzyUpgrade(this.upgrades)) {
             NBTTagList tagList = new NBTTagList();
             for (int i = startIndex; i < startIndex + 9; i++) {
-                if (!inventory[i].isEmpty()) {
+                if (!inventory.get(i).isEmpty()) {
                     NBTTagCompound tagCompound = new NBTTagCompound();
                     tagCompound.setByte(IronBackpacksConstants.NBTKeys.SLOT, (byte) i);
-                    inventory[i].writeToNBT(tagCompound);
+                    inventory.get(i).writeToNBT(tagCompound);
                     tagList.appendTag(tagCompound);
                 }
             }
@@ -340,10 +341,10 @@ public class InventoryAlternateGui implements IInventory {
         if (UpgradeMethods.hasFilterOreDictUpgrade(this.upgrades)) {
             NBTTagList tagList = new NBTTagList();
             for (int i = startIndex; i < startIndex + 9; i++) {
-                if (!inventory[i].isEmpty()) {
+                if (!inventory.get(i).isEmpty()) {
                     NBTTagCompound tagCompound = new NBTTagCompound();
                     tagCompound.setByte(IronBackpacksConstants.NBTKeys.SLOT, (byte) i);
-                    inventory[i].writeToNBT(tagCompound);
+                    inventory.get(i).writeToNBT(tagCompound);
                     tagList.appendTag(tagCompound);
                 }
             }
@@ -353,10 +354,10 @@ public class InventoryAlternateGui implements IInventory {
         if (UpgradeMethods.hasFilterModSpecificUpgrade(this.upgrades)) {
             NBTTagList tagList = new NBTTagList();
             for (int i = startIndex; i < startIndex + 9; i++) {
-                if (!inventory[i].isEmpty()) {
+                if (!inventory.get(i).isEmpty()) {
                     NBTTagCompound tagCompound = new NBTTagCompound();
                     tagCompound.setByte(IronBackpacksConstants.NBTKeys.SLOT, (byte) i);
-                    inventory[i].writeToNBT(tagCompound);
+                    inventory.get(i).writeToNBT(tagCompound);
                     tagList.appendTag(tagCompound);
                 }
             }
@@ -366,10 +367,10 @@ public class InventoryAlternateGui implements IInventory {
         if (UpgradeMethods.hasFilterVoidUpgrade(this.upgrades)) {
             NBTTagList tagList = new NBTTagList();
             for (int i = startIndex; i < startIndex + 9; i++) {
-                if (!inventory[i].isEmpty()) {
+                if (!inventory.get(i).isEmpty()) {
                     NBTTagCompound tagCompound = new NBTTagCompound();
                     tagCompound.setByte(IronBackpacksConstants.NBTKeys.SLOT, (byte) i);
-                    inventory[i].writeToNBT(tagCompound);
+                    inventory.get(i).writeToNBT(tagCompound);
                     tagList.appendTag(tagCompound);
                 }
             }
@@ -379,10 +380,10 @@ public class InventoryAlternateGui implements IInventory {
         if (UpgradeMethods.hasFilterAdvancedUpgrade(this.upgrades)) {
             NBTTagList tagListAllSlots = new NBTTagList();
             for (int i = 0; i < 18; i++){
-                if (!advFilterStacks[i].isEmpty()) {
+                if (advFilterStacks.get(i).isEmpty()) {
                     NBTTagCompound tagCompound = new NBTTagCompound();
                     tagCompound.setByte(IronBackpacksConstants.NBTKeys.SLOT, (byte) i);
-                    advFilterStacks[i].writeToNBT(tagCompound);
+                    advFilterStacks.get(i).writeToNBT(tagCompound);
                     tagListAllSlots.appendTag(tagCompound);
                 }
             }
@@ -399,10 +400,10 @@ public class InventoryAlternateGui implements IInventory {
         if (UpgradeMethods.hasFilterMiningUpgrade(this.upgrades)) {
             NBTTagList tagList = new NBTTagList();
             for (int i = startIndex; i < startIndex + 9; i++) {
-                if (!inventory[i].isEmpty()) {
+                if (!inventory.get(i).isEmpty()) {
                     NBTTagCompound tagCompound = new NBTTagCompound();
                     tagCompound.setByte(IronBackpacksConstants.NBTKeys.SLOT, (byte) i);
-                    inventory[i].writeToNBT(tagCompound);
+                    inventory.get(i).writeToNBT(tagCompound);
                     tagList.appendTag(tagCompound);
                 }
             }
@@ -412,10 +413,10 @@ public class InventoryAlternateGui implements IInventory {
         if (UpgradeMethods.hasRestockingUpgrade(this.upgrades)) {
             NBTTagList tagList = new NBTTagList();
             for (int i = startIndex; i < startIndex + 9; i++) {
-                if (!inventory[i].isEmpty()) {
+                if (!inventory.get(i).isEmpty()) {
                     NBTTagCompound tagCompound = new NBTTagCompound();
                     tagCompound.setByte(IronBackpacksConstants.NBTKeys.SLOT, (byte) i);
-                    inventory[i].writeToNBT(tagCompound);
+                    inventory.get(i).writeToNBT(tagCompound);
                     tagList.appendTag(tagCompound);
                 }
             }
@@ -435,7 +436,7 @@ public class InventoryAlternateGui implements IInventory {
             nbtTagCompound = backpackStack.getTagCompound();
 
             if (nbtTagCompound != null) {
-                this.inventory = new ItemStack[this.getSizeInventory()];
+                this.inventory = NonNullList.withSize(this.getSizeInventory(),ItemStack.EMPTY);
 
                 //sets the 'upgradeRemoved/Added' value to reflect how many upgrades have been added or removed so the loaded items can be shifted to go in their correct indices.
                 boolean hasUpgradeRemoved = false;
@@ -467,7 +468,7 @@ public class InventoryAlternateGui implements IInventory {
                         NBTTagCompound stackTag = tagList.getCompoundTagAt(i);
                         int j = stackTag.getByte(IronBackpacksConstants.NBTKeys.SLOT);
                         if (i >= 0 && i <= 9) {
-                            this.inventory[j] = new ItemStack(stackTag);
+                            this.inventory.set(j,new ItemStack(stackTag));
                         }
                     }
                 }
@@ -524,7 +525,7 @@ public class InventoryAlternateGui implements IInventory {
                         NBTTagList tagList = nbtTagCompound.getTagList(IronBackpacksConstants.NBTKeys.FILTER_ADV_ALL_SLOTS, Constants.NBT.TAG_COMPOUND);
                         for (int i = 0; i < tagList.tagCount(); i++) {
                             NBTTagCompound stackTag = tagList.getCompoundTagAt(i);
-                            advFilterStacks[stackTag.getByte(IronBackpacksConstants.NBTKeys.SLOT)] = new ItemStack(stackTag);
+                            advFilterStacks.set(stackTag.getByte(IronBackpacksConstants.NBTKeys.SLOT),new ItemStack(stackTag));
                         }
                     }
                     if (nbtTagCompound.hasKey(IronBackpacksConstants.NBTKeys.FILTER_ADV_BUTTONS)) {
@@ -577,7 +578,7 @@ public class InventoryAlternateGui implements IInventory {
             int j = shouldShiftRemoved(hasUpgradeRemoved, indexRemoved, ItemIConfigurableUpgrade) ? stackTag.getByte(IronBackpacksConstants.NBTKeys.SLOT) - 9 : stackTag.getByte(IronBackpacksConstants.NBTKeys.SLOT);
             if (shouldShiftAdded(hasUpgradeAdded, indexAdded, ItemIConfigurableUpgrade)) j+=9;
             if (i >= 0 && i <= 9) {
-                this.inventory[j] = new ItemStack(stackTag);
+                this.inventory.set(j,new ItemStack(stackTag));
             }
         }
     }
