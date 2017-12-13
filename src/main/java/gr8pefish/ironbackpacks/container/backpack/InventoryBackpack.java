@@ -318,6 +318,13 @@ public class InventoryBackpack implements IInventory {
                                 this.inventory[j] = new ItemStack(stackTag);
                             }
                         }
+                        //If the tags in the NBT are less than the inventory size, fill the rest with ItemStack.EMPTY. A hack, but there are one too many issues because of this.
+                        if (tagList.tagCount()<this.getSizeInventory()) {
+                            for (int i=tagList.tagCount();i<this.getSizeInventory();i++) {
+                                this.inventory[i]=ItemStack.EMPTY;
+                            }
+                        }
+
                     }
                 }
             }

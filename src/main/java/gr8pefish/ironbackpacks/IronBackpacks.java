@@ -87,9 +87,6 @@ public class IronBackpacks {
 		MinecraftForge.EVENT_BUS.register(forgeEventHandler);
 		FMLCommonHandler.instance().bus().register(forgeEventHandler);
 
-		//recipes
-//TODO		RecipeRegistry.registerAllRecipes();
-
 		//entity rendering
 		proxy.init();
 

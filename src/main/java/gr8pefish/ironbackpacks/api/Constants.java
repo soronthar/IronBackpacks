@@ -1,5 +1,7 @@
 package gr8pefish.ironbackpacks.api;
 
+import net.minecraft.util.ResourceLocation;
+
 public class Constants {
 
 	public static final String MOD_NAME = "Iron Backpacks";
@@ -9,4 +11,5 @@ public class Constants {
 	public static final String DOMAIN = MODID + ":"; //For resources
 	public static final String VERSION = "@VERSION@";
 	public static final String DEPEND = "required-after:forge@[14.23.0.2491,); after:JEI;"; //ToDo: Move Forge, caps, and version out. keep modid, mod name, and domain.
+	public static final ResourceLocation RECIPE_GROUP=new ResourceLocation(Constants.MODID, Constants.MOD_NAME);
 }

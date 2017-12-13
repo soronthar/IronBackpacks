@@ -65,7 +65,7 @@ public class BackpackTierRecipes {
             "iii",
             "cbc",
             "iii",
-            'i', "gemDiamond", 'c', "chestWood", 'b', ItemRegistry.goldBackpackStorageEmphasis, 'g', Blocks.GLASS};
+            'i', "gemDiamond", 'c', "chestWood", 'b', ItemRegistry.goldBackpackStorageEmphasis};
 
     public static List<Object[]> getGoldBackpackStorageEmphasisTierRecipes(){
         return Collections.singletonList(goldBackpackStorageEmphasisTierRecipe);
@@ -75,7 +75,7 @@ public class BackpackTierRecipes {
             "iii",
             "ubu",
             "iii",
-            'i', "gemDiamond", 'b', ItemRegistry.goldBackpackUpgradeEmphasis, 'g', Blocks.GLASS,
+            'i', "gemDiamond", 'b', ItemRegistry.goldBackpackUpgradeEmphasis,
             'u', new ItemStack(ItemRegistry.craftingItem, 1, ItemICraftingRegistry.getIndexOf(ItemRegistry.upgradeCore))};
 
     public static List<Object[]> getGoldBackpackUpgradeEmphasisTierRecipes(){
