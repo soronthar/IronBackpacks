@@ -13,6 +13,7 @@ import gr8pefish.ironbackpacks.util.helpers.IronBackpacksHelper;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.NonNullList;
@@ -119,56 +120,6 @@ public class BackpackRemoveUpgradeRecipe extends ShapelessOreRecipe implements I
         }
     }
 
-    @Override //copied directly from ShapelessOreRecipe
-    public boolean matches(InventoryCrafting var1, World world)
-    {
-        ArrayList<Object> required = new ArrayList<Object>(input);
-
-        for (int x = 0; x < var1.getSizeInventory(); x++)
-        {
-            ItemStack slot = var1.getStackInSlot(x);
-
-            if (slot != null)
-            {
-                boolean inRecipe = false;
-                Iterator<Object> req = required.iterator();
-
-                while (req.hasNext())
-                {
-                    boolean match = false;
-
-                    Object next = req.next();
-
-                    if (next instanceof ItemStack)
-                    {
-                        match = OreDictionary.itemMatches((ItemStack)next, slot, false);
-                    }
-                    else if (next instanceof List)
-                    {
-                        Iterator<ItemStack> itr = ((List<ItemStack>)next).iterator();
-                        while (itr.hasNext() && !match)
-                        {
-                            match = OreDictionary.itemMatches(itr.next(), slot, false);
-                        }
-                    }
-
-                    if (match)
-                    {
-                        inRecipe = true;
-                        required.remove(next);
-                        break;
-                    }
-                }
-
-                if (!inRecipe)
-                {
-                    return false;
-                }
-            }
-        }
-        return required.isEmpty();
-    }
-
     @Override
     public ItemStack getRecipeOutput() {
         return recipeOutput;
@@ -176,7 +127,7 @@ public class BackpackRemoveUpgradeRecipe extends ShapelessOreRecipe implements I
 
     @Override
     public NonNullList<ItemStack>  getRemainingItems(InventoryCrafting inv){ //needs matches overridden due to (Forge?) bug
-        if (upgradeRemovedStack != null){
+        if (upgradeRemovedStack != null && !upgradeRemovedStack.isEmpty()){
 
             NonNullList<ItemStack> ret = NonNullList.create();
             ret.add(upgradeRemovedStack.copy());
