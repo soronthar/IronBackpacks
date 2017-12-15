@@ -16,6 +16,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
@@ -443,15 +444,15 @@ public class UpgradeMethods {
      * @param stack - the backpack with the filter
      * @return - array of the non-null items
      */
-    public static ItemStack[] getAdvFilterAllItems(ItemStack stack) {
-        ItemStack[] advFilterStacks = new ItemStack[18];
+    public static NonNullList<ItemStack> getAdvFilterAllItems(ItemStack stack) {
+        NonNullList<ItemStack> advFilterStacks = NonNullList.withSize(18, ItemStack.EMPTY);
         NBTTagCompound nbtTagCompound = stack.getTagCompound();
         if (nbtTagCompound != null){
             if (nbtTagCompound.hasKey(IronBackpacksConstants.NBTKeys.FILTER_ADV_ALL_SLOTS)) {
                 NBTTagList tagList = nbtTagCompound.getTagList(IronBackpacksConstants.NBTKeys.FILTER_ADV_ALL_SLOTS, Constants.NBT.TAG_COMPOUND);
                 for (int i = 0; i < tagList.tagCount(); i++) {
                     NBTTagCompound stackTag = tagList.getCompoundTagAt(i);
-                    advFilterStacks[stackTag.getByte(IronBackpacksConstants.NBTKeys.SLOT)] = new ItemStack(stackTag);
+                    advFilterStacks.set(stackTag.getByte(IronBackpacksConstants.NBTKeys.SLOT), new ItemStack(stackTag));
                 }
             }
         }
@@ -484,16 +485,8 @@ public class UpgradeMethods {
      * @param buttonStates - the filter states of each button
      * @return - the items that fit this criteria
      */
-    public static ArrayList<ItemStack> getAdvFilterBasicItems(ItemStack[] itemStacks, byte[] buttonStates){
-        ArrayList<ItemStack> returnArray = new ArrayList<>();
-        for (int i = 0; i < itemStacks.length; i++){
-            if (!itemStacks[i].isEmpty()){
-                if (buttonStates[i] == (byte) GuiButtonRegistry.getButton(ButtonNames.EXACT).getId()){
-                    returnArray.add(itemStacks[i]);
-                }
-            }
-        }
-        return returnArray;
+    public static ArrayList<ItemStack> getAdvFilterBasicItems(NonNullList<ItemStack> itemStacks, byte[] buttonStates){
+        return getFilterItems(itemStacks, buttonStates, ButtonNames.EXACT);
     }
 
     /**
@@ -502,16 +495,8 @@ public class UpgradeMethods {
      * @param buttonStates - the filter states of each button
      * @return - the items that fit this criteria
      */
-    public static ArrayList<ItemStack> getAdvFilterFuzzyItems(ItemStack[] itemStacks, byte[] buttonStates){
-        ArrayList<ItemStack> returnArray = new ArrayList<>();
-        for (int i = 0; i < itemStacks.length; i++){
-            if (!itemStacks[i].isEmpty()){
-                if (buttonStates[i] == (byte)GuiButtonRegistry.getButton(ButtonNames.FUZZY).getId()){
-                    returnArray.add(itemStacks[i]);
-                }
-            }
-        }
-        return returnArray;
+    public static ArrayList<ItemStack> getAdvFilterFuzzyItems(NonNullList<ItemStack> itemStacks, byte[] buttonStates){
+        return getFilterItems(itemStacks, buttonStates, ButtonNames.FUZZY);
     }
 
     /**
@@ -520,16 +505,8 @@ public class UpgradeMethods {
      * @param buttonStates - the filter states of each button
      * @return - the items that fit this criteria
      */
-    public static ArrayList<ItemStack> getAdvFilterModSpecificItems(ItemStack[] itemStacks, byte[] buttonStates){
-        ArrayList<ItemStack> returnArray = new ArrayList<>();
-        for (int i = 0; i < itemStacks.length; i++){
-            if (!itemStacks[i].isEmpty()){
-                if (buttonStates[i] == (byte)GuiButtonRegistry.getButton(ButtonNames.MOD_SPECIFIC).getId()){
-                    returnArray.add(itemStacks[i]);
-                }
-            }
-        }
-        return returnArray;
+    public static ArrayList<ItemStack> getAdvFilterModSpecificItems(NonNullList<ItemStack> itemStacks, byte[] buttonStates){
+        return getFilterItems(itemStacks, buttonStates, ButtonNames.MOD_SPECIFIC);
     }
 
     /**
@@ -538,16 +515,8 @@ public class UpgradeMethods {
      * @param buttonStates - the filter states of each button
      * @return - the items that fit this criteria
      */
-    public static ArrayList<ItemStack> getAdvFilterOreDictItems(ItemStack[] itemStacks, byte[] buttonStates){
-        ArrayList<ItemStack> returnArray = new ArrayList<>();
-        for (int i = 0; i < itemStacks.length; i++){
-            if (!itemStacks[i].isEmpty()){
-                if (buttonStates[i] == (byte)GuiButtonRegistry.getButton(ButtonNames.ORE_DICT).getId()){
-                    returnArray.add(itemStacks[i]);
-                }
-            }
-        }
-        return returnArray;
+    public static ArrayList<ItemStack> getAdvFilterOreDictItems(NonNullList<ItemStack> itemStacks, byte[] buttonStates){
+        return getFilterItems(itemStacks, buttonStates, ButtonNames.ORE_DICT);
     }
 
     /**
@@ -556,12 +525,17 @@ public class UpgradeMethods {
      * @param buttonStates - the filter states of each button
      * @return - the items that fit this criteria
      */
-    public static ArrayList<ItemStack> getAdvFilterVoidItems(ItemStack[] itemStacks, byte[] buttonStates){
+    public static ArrayList<ItemStack> getAdvFilterVoidItems(NonNullList<ItemStack> itemStacks, byte[] buttonStates){
+        return getFilterItems(itemStacks, buttonStates, ButtonNames.VOID);
+    }
+
+    private static ArrayList<ItemStack> getFilterItems(NonNullList<ItemStack> itemStacks, byte[] buttonStates, ButtonNames modSpecific) {
         ArrayList<ItemStack> returnArray = new ArrayList<>();
-        for (int i = 0; i < itemStacks.length; i++){
-            if (!itemStacks[i].isEmpty()){
-                if (buttonStates[i] == (byte)GuiButtonRegistry.getButton(ButtonNames.VOID).getId()){
-                    returnArray.add(itemStacks[i]);
+        for (int i = 0; i < itemStacks.size(); i++){
+            ItemStack itemStack = itemStacks.get(i);
+            if (!itemStack.isEmpty()){
+                if (buttonStates[i] == (byte) GuiButtonRegistry.getButton(modSpecific).getId()){
+                    returnArray.add(itemStack);
                 }
             }
         }
@@ -736,7 +710,7 @@ public class UpgradeMethods {
         for (int i = 0; i < transferTo.getSlots(); i++) {
             if (stackToTransfer.isEmpty()) return ItemStack.EMPTY; //short circuit to return quickly
             if (usePrecise) { //precise, have to check if the items is in the inventory already
-                if (isStackInInventoryAlready(transferTo, stackToTransfer)) { //TODO: return the index, to merge as musch as possible
+                if (isStackInInventoryAlready(transferTo, stackToTransfer)) { //TODO: return the ine
                     stackToTransfer = transferToInv(transferTo, stackToTransfer, i);
                 }
             } else { //just check if the slot can accept the items

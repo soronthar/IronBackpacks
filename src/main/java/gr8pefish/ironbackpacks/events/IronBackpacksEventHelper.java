@@ -23,6 +23,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.network.play.server.SPacketCustomSound;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
@@ -610,7 +611,7 @@ public class IronBackpacksEventHelper {
                         deleteWithVoidFilter(UpgradeMethods.getVoidFilterItems(backpack), event);
 
                     if (UpgradeMethods.hasFilterAdvancedUpgrade(upgrades)) {
-                        ItemStack[] advFilterItems = UpgradeMethods.getAdvFilterAllItems(backpack);
+                        NonNullList<ItemStack> advFilterItems = UpgradeMethods.getAdvFilterAllItems(backpack);
                         byte[] advFilterButtonStates = UpgradeMethods.getAdvFilterButtonStates(backpack);
 
                         transferWithBasicFilter(UpgradeMethods.getAdvFilterBasicItems(advFilterItems, advFilterButtonStates), event, container);
@@ -766,14 +767,16 @@ public class IronBackpacksEventHelper {
      * @return - OreDict entries in string form, null if no entries
      */
     private static ArrayList<String> getOreDict(ItemStack itemStack){
-        int[] ids = OreDictionary.getOreIDs(itemStack);
         ArrayList<String> retList = new ArrayList<String>();
-        if (ids.length > 0){
-            for (int i = 0; i < ids.length; i++) {
-                if (i > 0 && !retList.contains(OreDictionary.getOreName(ids[i]))) { //no duplicates
-                    retList.add(OreDictionary.getOreName(ids[i]));
-                }else{
-                    retList.add(OreDictionary.getOreName(ids[i]));
+        if (!itemStack.isEmpty()) {
+            int[] ids = OreDictionary.getOreIDs(itemStack);
+            if (ids.length > 0){
+                for (int i = 0; i < ids.length; i++) {
+                    if (i > 0 && !retList.contains(OreDictionary.getOreName(ids[i]))) { //no duplicates
+                        retList.add(OreDictionary.getOreName(ids[i]));
+                    }else{
+                        retList.add(OreDictionary.getOreName(ids[i]));
+                    }
                 }
             }
         }

@@ -380,12 +380,10 @@ public class InventoryAlternateGui implements IInventory {
         if (UpgradeMethods.hasFilterAdvancedUpgrade(this.upgrades)) {
             NBTTagList tagListAllSlots = new NBTTagList();
             for (int i = 0; i < 18; i++){
-                if (advFilterStacks.get(i).isEmpty()) {
-                    NBTTagCompound tagCompound = new NBTTagCompound();
-                    tagCompound.setByte(IronBackpacksConstants.NBTKeys.SLOT, (byte) i);
-                    advFilterStacks.get(i).writeToNBT(tagCompound);
-                    tagListAllSlots.appendTag(tagCompound);
-                }
+                NBTTagCompound tagCompound = new NBTTagCompound();
+                tagCompound.setByte(IronBackpacksConstants.NBTKeys.SLOT, (byte) i);
+                advFilterStacks.get(i).writeToNBT(tagCompound);
+                tagListAllSlots.appendTag(tagCompound);
             }
             //saves the button states as bytes
             byte[] byteArray = new byte[18];
