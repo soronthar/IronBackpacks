@@ -174,8 +174,9 @@ public class ContainerBackpack extends Container {
                 ItemStack stack = getSlot(slot).getStack();
 
                 if (!ItemStack.areItemStackTagsEqual(stack, IronBackpacksHelper.getBackpack(player))) {//can't right click the same backpack you have open, causes it to not update correctly and dupe items
-                    if (!stack.isEmpty()) {
-                        stack.useItemRightClick(player.world, player, EnumHand.MAIN_HAND);
+                    if (!stack.isEmpty() && stack.getItem() instanceof  ItemBackpack) {
+                        ItemBackpack item= (ItemBackpack) stack.getItem(); //huge hack, but such is life.
+                        item.handleBackpackOpening(stack, player.world,player, EnumHand.MAIN_HAND, player.isSneaking());
                     }
                 }
 

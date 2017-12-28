@@ -43,10 +43,10 @@ public class ItemIUpgradableITieredBackpack extends Item implements IUpgradableB
      * The Item that represents an AbstractUpgradableTieredBackpack
      */
     public ItemIUpgradableITieredBackpack(String name, int rowLength, int rowCount, int upgradePoints, int additionalPoints, ResourceLocation guiResourceLocation, int guiXSize, int guiYSize, ResourceLocation modelTexture, String specialty){
-        setMaxStackSize(1);
-        setNoRepair();
+        this.setMaxStackSize(1);
+        this.setNoRepair();
 
-        setUnlocalizedName(Constants.MODID + "." + IronBackpacksAPI.ITEM_BACKPACK_BASE_NAME + "." + name);
+        this.setUnlocalizedName(Constants.MODID + "." + IronBackpacksAPI.ITEM_BACKPACK_BASE_NAME + "." + name);
 
         this.name = name;
         this.rowLength = rowLength;
