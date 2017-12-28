@@ -149,6 +149,17 @@ public class GUIBackpack extends GuiContainer {
 
     }
 
+    /**
+     * Draws the screen and all the components in it.
+     */
+     @Override
+    public void drawScreen(int mouseX, int mouseY, float partialTicks)
+    {
+        this.drawDefaultBackground();
+        super.drawScreen(mouseX, mouseY, partialTicks);
+        this.renderHoveredToolTip(mouseX, mouseY);
+    }
+
     @Override
     protected void actionPerformed(GuiButton button) { //called whenever a button is pressed, sorts on both sides (client and server)
         if (button == backpack_to_inventory_BUTTON) {
